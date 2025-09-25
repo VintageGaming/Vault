@@ -1,0 +1,28 @@
+name: Vault
+version: 1.8
+description: Vault is a Permissions & Economy API to allow plugins to more easily hook into these systems without needing to hook each individual system themselves.
+
+Vault currently supports the following: Permissions 3, PEX, GroupManager, bPerms, bPerms2, SimplyPerms, DroxPerms, zPermissions, rscPermissions, KPerms, Starburst, EssentialsEcon, and OverPermissions
+authors: [cereal, Sleaker, mung3r, creatorfromhell, VintageGaming]
+website: https://dev.bukkit.org/projects/vault
+api-version: 1.13
+folia-supported: true
+
+main: net.milkbowl.vault.Vault
+load: startup
+
+commands:
+  vault-info:
+    description: Displays information about Vault 
+    usage: |
+           /<command> - Displays Vault information
+    permission: vault.admin
+  vault-convert:
+    description: Converts all data in economy1 and dumps it into economy2
+    usage: |
+           /<command> [economy1] [economy2]
+    permission: vault.admin
+permissions:
+  vault.admin:
+    description: Notifies the player when vault is in need of an update.
+    default: op
