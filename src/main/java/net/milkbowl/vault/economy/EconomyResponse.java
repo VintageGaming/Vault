@@ -1,9 +1,14 @@
 package net.milkbowl.vault.economy;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.math.BigDecimal;
+
 /*    */
 public class EconomyResponse
 {
-  public final double amount;
-  public final double balance;
+  public final BigDecimal amount;
+  public final BigDecimal balance;
   public final ResponseType type;
   public final String errorMessage;
   
@@ -25,11 +30,19 @@ public class EconomyResponse
   }
 /*    */
   public EconomyResponse(double amount, double balance, ResponseType type, String errorMessage) {
-     this.amount = amount;
-     this.balance = balance;
+     this.amount = BigDecimal.valueOf(amount);
+     this.balance = BigDecimal.valueOf(balance);
      this.type = type;
      this.errorMessage = errorMessage;
   }
+
+  public EconomyResponse(@NotNull final BigDecimal amount, @NotNull final BigDecimal balance, @NotNull final ResponseType type, @NotNull final String errorMessage) {
+      this.amount = amount;
+      this.balance = balance;
+      this.type = type;
+      this.errorMessage = errorMessage;
+    }
+
 /*    */
   public boolean transactionSuccess() {
      switch (this.type) {

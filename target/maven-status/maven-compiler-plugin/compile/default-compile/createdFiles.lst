@@ -34,6 +34,7 @@ net\milkbowl\vault\chat\plugins\Chat_TotalPermissions.class
 net\milkbowl\vault\permission\plugins\Permission_SimplyPerms.class
 net\milkbowl\vault\permission\plugins\Permission_rscPermissions$PermissionServerListener.class
 net\milkbowl\vault\chat\plugins\Chat_Permissions3.class
+net\milkbowl\vault\economy\AccountPermission.class
 net\milkbowl\vault\chat\plugins\Chat_bPermissions2.class
 net\milkbowl\vault\permission\plugins\Permission_Permissions3$PermissionServerListener.class
 net\milkbowl\vault\permission\Permission.class
