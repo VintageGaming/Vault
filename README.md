@@ -109,5 +109,5 @@ new plugin connectors.
     - Sleeker
     - mung3r
 
-  *Vault2 API Author
+  * Vault2 API Author
     - creatorfromhell
