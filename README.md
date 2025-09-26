@@ -66,8 +66,8 @@ to add your own connector within your plugin as Vault no longer maintains
 new plugin connectors.
 
 * Economy
-  - Essentials
-  - CMI
+  - Essentials (https://www.spigotmc.org/resources/essentialsx.9089/)
+  - CMI (https://www.spigotmc.org/resources/cmi-300-commands-insane-kits-portals-essentials-economy-mysql-sqlite-much-more.3742)
   - CommandsEx
 
 * Permissions
