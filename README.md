@@ -65,6 +65,11 @@ you have your own plugin that you believe should be supported, you'll need
 to add your own connector within your plugin as Vault no longer maintains
 new plugin connectors.
 
+* Economy
+  - Essentials
+  - CMI
+  - CommandsEx
+
 * Permissions
   - bPermissions 2 (https://dev.bukkit.org/projects/bpermissions)
   - DroxPerms
