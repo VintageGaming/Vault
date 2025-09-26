@@ -5,6 +5,7 @@ net\milkbowl\vault\chat\plugins\Chat_TotalPermissions$PermissionServerListener.c
 net\milkbowl\vault\permission\plugins\Permission_Starburst$PermissionServerListener.class
 net\milkbowl\vault\economy\plugins\Economy_CMI$EconomyServerListener.class
 net\milkbowl\vault\permission\plugins\Permission_GroupManager.class
+net\milkbowl\vault\permission\plugins\Permission_VintagePerms$PermissionServerListener.class
 net\milkbowl\vault\permission\plugins\Permission_rscPermissions.class
 net\milkbowl\vault\chat\plugins\Chat_iChat$PermissionServerListener.class
 net\milkbowl\vault\permission\plugins\Permission_PermissionsEx$PermissionServerListener.class
@@ -54,6 +55,7 @@ net\milkbowl\vault2\chat\Chat.class
 net\milkbowl\vault\permission\plugins\Permission_PermissionsBukkit$PermissionServerListener.class
 net\milkbowl\vault2\economy\EconomyResponse$ResponseType.class
 net\milkbowl\vault\economy\EconomyResponse.class
+net\milkbowl\vault\permission\plugins\Permission_VintagePerms.class
 net\milkbowl\vault\chat\plugins\Chat_DroxPerms$PermissionServerListener.class
 net\milkbowl\vault\chat\plugins\Chat_bPermissions2$PermissionServerListener.class
 net\milkbowl\vault\chat\Chat.class

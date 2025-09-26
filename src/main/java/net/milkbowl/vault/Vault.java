@@ -44,9 +44,9 @@ public class Vault extends JavaPlugin {
      this.currentVersionTitle = getDescription().getVersion().split("-")[0];
      this.sm = getServer().getServicesManager();
 
-     loadPermission();
      loadChat();
      loadEconomy();
+     loadPermission();
      
      getCommand("vault-info").setExecutor(this);
      getCommand("vault-convert").setExecutor(this);
@@ -102,6 +102,9 @@ public class Vault extends JavaPlugin {
      * Attempts to load Permission Addons
      */
     private void loadPermission() {
+        // Try to load VintagePerms
+        hookPermission("VintagePerms", Permission_VintagePerms.class, ServicePriority.Highest, "com.VintageGaming.VintagePerms.PermsMain");
+
         // Try to load Starburst
         hookPermission("Starburst", Permission_Starburst.class, ServicePriority.Highest, "com.dthielke.starburst.StarburstPlugin");
 
