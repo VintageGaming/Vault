@@ -30,7 +30,7 @@ So, what features do I _think_ you'll like the most?
   has never hurt developers, so here's to choice!
 
 ## License
-Copyright (C) 2011-2018 Morgan Humes <morgan@lanaddict.com>
+Copyright (C) 2025 VintageGaming
 
 Vault is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
