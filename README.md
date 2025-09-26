@@ -69,6 +69,7 @@ new plugin connectors.
   - Essentials (https://www.spigotmc.org/resources/essentialsx.9089/)
   - CMI (https://www.spigotmc.org/resources/cmi-300-commands-insane-kits-portals-essentials-economy-mysql-sqlite-much-more.3742)
   - CommandsEx
+  - Economy Plugins Already Developed for the Original Vault and or Utilizing the Vault2 API
 
 * Permissions
   - bPermissions 2 (https://dev.bukkit.org/projects/bpermissions)
@@ -85,6 +86,7 @@ new plugin connectors.
   - SuperPerms (Bukkit's default)
   - TotalPermissions (https://dev.bukkit.org/projects/totalpermissions)
   - VintagePerms (https://www.spigotmc.org/resources/vintageperms-permissionsex-inspired.49971/)
+  - Permissions Plugins Already Developed for the Original Vault and or Utilizing the Vault2 API
 
 * Chat
   - bPermissions2
@@ -97,3 +99,15 @@ new plugin connectors.
   - Permissions Ex (PEX) (https://forums.bukkit.org/threads/18140/)
   - rscPermissions
   - TotalPermissions (https://dev.bukkit.org/projects/totalpermissions)
+  - Chat Plugins Already Developed for the Original Vault and or Utilizing the Vault2 API
+ 
+
+  ## Credit/Contributors
+
+  * Original Authors/Contributors
+    - cereal
+    - Sleeker
+    - mung3r
+
+  *Vault2 API Author
+    - creatorfromhell
