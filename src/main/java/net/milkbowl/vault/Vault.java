@@ -102,8 +102,6 @@ public class Vault extends JavaPlugin {
      * Attempts to load Permission Addons
      */
     private void loadPermission() {
-        // Try to load VintagePerms
-        hookPermission("VintagePerms", Permission_VintagePerms.class, ServicePriority.Highest, "com.VintageGaming.VintagePerms.PermsMain");
 
         // Try to load Starburst
         hookPermission("Starburst", Permission_Starburst.class, ServicePriority.Highest, "com.dthielke.starburst.StarburstPlugin");
@@ -143,6 +141,9 @@ public class Vault extends JavaPlugin {
 
         // Try to load KPerms
         hookPermission("KPerms", Permission_KPerms.class, ServicePriority.Normal, "com.lightniinja.kperms.KPermsPlugin");
+
+        // Try to load VintagePerms
+        hookPermission("VintagePerms", Permission_VintagePerms.class, ServicePriority.Highest, "com.VintageGaming.VintagePerms.PermsMain");
 
         Permission perms = new Permission_SuperPerms(this);
         sm.register(Permission.class, perms, this, ServicePriority.Lowest);

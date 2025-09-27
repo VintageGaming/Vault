@@ -352,12 +352,8 @@ public class Permission_GroupManager
   //Methods added for CustomVault Update
 
     @Override
-  public String[] getPlayerPermissions(String world, OfflinePlayer player) {
-      OverloadedWorldHolder owh = groupManager.getWorldsHolder().getWorldData(world);
-
-      if (owh == null) {
-          owh = groupManager.getWorldsHolder().getDefaultWorld();
-      }
+  public String[] getPlayerAllPermissions(OfflinePlayer player) {
+      OverloadedWorldHolder owh = groupManager.getWorldsHolder().getDefaultWorld();
 
       User user = owh.getUser(player.getUniqueId().toString());
 
@@ -369,25 +365,7 @@ public class Permission_GroupManager
   }
 
     @Override
-  public String[] getPlayerPermissions(World world, OfflinePlayer player) {
-      return getPlayerPermissions(world.getName(), player);
-  }
-
-    @Override
-  public String[] getPlayerPermissions(OfflinePlayer player) {
-      if (player.isOnline()) {
-          return getPlayerPermissions(((Player) player).getWorld().getName(), player);
-      }
-      return getPlayerPermissions(groupManager.getWorldsHolder().getDefaultWorld().getName(), player);
-  }
-
-    @Override
-  public String[] getPlayerPermissions(World world, Player player) {
-      return getPlayerPermissions(world.getName(), (OfflinePlayer)player);
-  }
-
-    @Override
-  public String[] getGroupPermissions(String world, String group) {
+  public String[] getGroupAllPermissions(String world, String group) {
       OverloadedWorldHolder owh = groupManager.getWorldsHolder().getWorldData(world);
 
       if (owh == null) {
@@ -404,42 +382,7 @@ public class Permission_GroupManager
   }
 
     @Override
-  public String[] getGroupPermissions(World world, String groupName) {
-      return getGroupPermissions(world.getName(), groupName);
-  }
-
-    @Override
-  public String[] getGroupPermissions(String groupName) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
-      Group group = owh.getGroup(groupName);
-
-      if (group == null) {
-          return new String[0];
-      }
-
-      return group.getPermissions().keySet().toArray(new String[0]);
-  }
-
-    @Override
   public String[] getGroupParents(String world, String group) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(world);
-      if (owh == null) {
-          owh = this.groupManager.getWorldsHolder().getDefaultWorld();
-      }
-      Group g = owh.getGroup(group);
-      if (g == null) {
-          return new String[0];
-          }
-      return g.getInherits().toArray(new String[0]);
-  }
-
-    @Override
-  public String[] getGroupParents(World world, String group) {
-      return getGroupParents(world.getName(), group);
-  }
-
-    @Override
-  public String[] getGroupParents(String group) {
       OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
       Group g = owh.getGroup(group);
       if (g == null) {
@@ -459,26 +402,12 @@ public class Permission_GroupManager
   }
 
     @Override
-  public boolean groupCreate(String group, boolean isDefault) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
-      if (owh == null) {
-          return false;
-      }
-
-      return (owh.createGroup(group) != null);
-  }
-
-    @Override
-  public boolean groupCreate(String group) {
-      return groupCreate(Bukkit.getWorlds().getFirst().getName(), group, false);
-  }
-
-    @Override
   public boolean groupDelete(String worldName, String group) {
       OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(worldName);
       if (owh == null) {
           return false;
       }
+
       Group g = owh.getGroup(group);
       if (g == null) {
           return false;
@@ -486,18 +415,15 @@ public class Permission_GroupManager
       return owh.removeGroup(g.getName());
   }
 
-    @Override
-  public boolean groupDelete(String group) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
+  @Override
+    public String getDefaultGroup(String world) {
+      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(world);
       if (owh == null) {
-          return false;
+          owh = this.groupManager.getWorldsHolder().getDefaultWorld();
       }
-
-      Group g = owh.getGroup(group);
-      if (g == null) {
-          return false;
-      }
-
-      return owh.removeGroup(g.getName());
+      return owh.getDefaultGroup().getName();
   }
+
+
+
 }

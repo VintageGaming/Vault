@@ -50,6 +50,7 @@ public abstract class Permission
      return player.hasPermission(permission);
   }
 
+  @Deprecated
   public abstract boolean playerHas(String worldName, @Nonnull String player, @Nonnull String permission);
   
   @Deprecated
@@ -72,6 +73,7 @@ public abstract class Permission
      return has(player, permission);
   }
 
+  @Deprecated
   public abstract boolean playerAdd(String worldName, @Nonnull String player, @Nonnull String permission);
 
   @Deprecated
@@ -312,89 +314,39 @@ public abstract class Permission
       return false;
   }
 
-  @Deprecated
-  public boolean playerAddTimedPermission(@Nonnull OfflinePlayer player, @Nonnull String permission, long time) {
-      if (player.isOnline())
-          return playerAddTimedPermission(((Player) player).getWorld().getName(), (OfflinePlayer)player, permission, time);
-      return playerAddTimedPermission((String) null, (OfflinePlayer)player, permission, time);
-  }
-
-  @Deprecated
-  public boolean playerAddTimedPermission(@Nonnull Player player, @Nonnull String permission, long time) {
-      return playerAddTimedPermission(player.getWorld().getName(), (OfflinePlayer)player, permission, time);
-  }
-
-  @Deprecated
-  public boolean playerAddTimedPermission(World world, @Nonnull Player player, @Nonnull String permission, long time) {
-      if (world == null)
-          return playerAddTimedPermission((String) null, (OfflinePlayer)player, permission, time);
-      return playerAddTimedPermission(world.getName(), (OfflinePlayer)player, permission, time);
-  }
-
   public boolean playerRemoveTimedPermission(String worldName, @Nonnull OfflinePlayer player, @Nonnull String permission) {
       log.severe("Plugin " + plugin.getName() + ", has not Implemented Player Timed Permissions feature with Vault!");
       return false;
   }
 
-  @Deprecated
-  public boolean playerRemoveTimedPermission(@Nonnull OfflinePlayer player, @Nonnull String permission) {
-      if (player.isOnline())
-          return playerRemoveTimedPermission(((Player) player).getWorld().getName(), player, permission);
-      return playerRemoveTimedPermission((String) null, player, permission);
+  public String[] getPlayerAllPermissions(OfflinePlayer player) {
+      log.severe("Plugin " + plugin.getName() + ", has not Implemented getPlayerAllPermissions feature!");
+      return new String[0];
   }
 
-  @Deprecated
-  public boolean playerRemoveTimedPermission(@Nonnull Player player, @Nonnull String permission) {
-      return playerRemoveTimedPermission(player.getWorld().getName(), (OfflinePlayer)player, permission);
+  public String[] getPlayerOwnPermissions(String world, OfflinePlayer player) {
+      log.severe("Plugin " + plugin.getName() + ", has not Implemented getPlayerOwnPermissions feature!");
+      return new String[0];
   }
 
-
-  //Added Support for GroupManager
-  public String[] getPlayerPermissions(String worldName, @Nonnull OfflinePlayer player) {
-      log.severe("Plugin " + plugin.getName() + ", has not Implemented getPlayerPermissions feature!");
-      return new String[1];
+  public String[] getPlayerWorldPermissions(String world, @Nonnull OfflinePlayer player) {
+      log.severe("Plugin " + plugin.getName() + ", has not Implemented getPlayerWorldPermissions feature!");
+      return new String[0];
   }
 
-  @Deprecated
-  public String[] getPlayerPermissions(@Nonnull Player player) {
-      return getPlayerPermissions(player.getWorld().getName(), (OfflinePlayer) player);
+  public String[] getGroupAllPermissions(String world, @Nonnull String group) {
+      log.severe("Plugin " + plugin.getName() + ", has not Implemented getGroupAllPermissions feature!");
+      return new String[0];
   }
 
-  @Deprecated
-  public String[] getPlayerPermissions(World world, @Nonnull Player player) {
-      if (world == null)
-          return getPlayerPermissions((String) null, (OfflinePlayer) player);
-      return getPlayerPermissions(world.getName(), (OfflinePlayer) player);
+  public String[] getGroupOwnPermissions(@Nonnull String group) {
+      log.severe("Plugin " + plugin.getName() + ", has not Implemented getGroupOwnPermissions feature!");
+      return new String[0];
   }
 
-  @Deprecated
-  public String[] getPlayerPermissions(@Nonnull OfflinePlayer player) {
-      return getPlayerPermissions((String) null, player);
-  }
-
-  @Deprecated
-  public String[] getPlayerPermissions(World world, @Nonnull OfflinePlayer player) {
-      if (world == null)
-          return getPlayerPermissions((String) null, player);
-      return getPlayerPermissions(world.getName(), player);
-  }
-
-  //Added Support for GroupManager
-  public String[] getGroupPermissions(String worldName, @Nonnull String group) {
+  public String[] getGroupWorldPermissions(String worldName, @Nonnull String group) {
       log.severe("Plugin " + plugin.getName() + ", has not Implemented getGroupWorldPermissions feature!");
-      return new String[1];
-  }
-
-  @Deprecated
-  public String[] getGroupPermissions(@Nonnull String group) {
-      return getGroupPermissions((String) null, group);
-  }
-
-  @Deprecated
-  public String[] getGroupPermissions(World world, @Nonnull String group) {
-      if (world == null)
-          return getGroupPermissions((String) null, group);
-      return getGroupPermissions(world.getName(), group);
+      return new String[0];
   }
 
   public boolean groupAddTimedPermission(String worldName, @Nonnull String group, @Nonnull String permission, long time) {
@@ -402,45 +354,15 @@ public abstract class Permission
       return false;
   }
 
-  @Deprecated
-  public boolean groupAddTimedPermission(World world, @Nonnull String group, @Nonnull String permission, long time) {
-      if (world == null)
-          return groupAddTimedPermission((String) null, group, permission, time);
-      return groupAddTimedPermission(world.getName(), group, permission, time);
-  }
-
-  @Deprecated
-  public boolean groupAddTimedPermission(@Nonnull String group, @Nonnull String permission, long time) {
-      return groupAddTimedPermission((String) null, group, permission, time);
-  }
-
   public boolean groupRemoveTimedPermission(String worldName, @Nonnull String group, @Nonnull String permission) {
       log.severe("Plugin " + plugin.getName() + ", has not Implemented Timed Permissions feature with Vault!");
       return false;
-  }
-
-  @Deprecated
-  public boolean groupRemoveTimedPermission(World world, @Nonnull String group, @Nonnull String permission) {
-      if (world == null)
-          return groupRemoveTimedPermission((String) null, group, permission);
-      return groupRemoveTimedPermission(world.getName(), group, permission);
   }
 
   //Added Support for GroupManager
   public String[] getGroupParents(String worldName, @Nonnull String group) {
       log.severe("Plugin " + plugin.getName() + ", has not Implemented getGroupParents feature!");
       return new String[1];
-  }
-
-  @Deprecated
-  public String[] getGroupParents(World world, @Nonnull String group) {
-      if (world == null)
-          return getGroupParents((String) null, group);
-      return getGroupParents(world.getName(), group);
-  }
-
-  public String[] getGroupParents(@Nonnull String group) {
-      return getGroupParents((String) null, group);
   }
 
   public String getGroupPrefix(@Nonnull String group) {
@@ -469,49 +391,15 @@ public abstract class Permission
       return false;
   }
 
-  @Deprecated
-  public boolean groupCreate(World world, @Nonnull String group, boolean isDefault) {
-      return groupCreate(world.getName(), group, isDefault);
-  }
-
-  @Deprecated
-  public boolean groupCreate(@Nonnull String group, boolean isDefault) {
-      return groupCreate(Bukkit.getWorlds().getFirst().getName(), group, isDefault);
-  }
-
-  @Deprecated
-  public boolean groupCreate(@Nonnull String group) {
-      return groupCreate(Bukkit.getWorlds().getFirst().getName(), group, false);
-  }
-
   //Added Support for GroupManager
   public boolean groupDelete(String worldName, @Nonnull String group) {
       log.severe("Plugin " + plugin.getName() + ", Doesn't allow Vault to Delete Groups!");
       return false;
   }
 
-  @Deprecated
-  public boolean groupDelete(World world, @Nonnull String group) {
-      if (world == null)
-          return groupDelete((String) null, group);
-      return groupDelete(world.getName(), group);
-  }
-
-  @Deprecated
-  public boolean groupDelete(@Nonnull String group) {
-      return groupDelete((String) null, group);
-  }
-
   public String getDefaultGroup(@Nonnull String world) {
       log.severe("Plugin " + plugin.getName() + ", has not Implemented getDefaultGroup feature!");
       return null;
-  }
-
-  @Deprecated
-  public String getDefaultGroup(World world) {
-      if (world == null)
-          return getDefaultGroup((String) null);
-      return getDefaultGroup(world.getName());
   }
 
 }

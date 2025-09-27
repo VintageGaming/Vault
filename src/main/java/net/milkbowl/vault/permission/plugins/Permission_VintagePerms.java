@@ -1,6 +1,7 @@
 package net.milkbowl.vault.permission.plugins;
 
 import com.VintageGaming.VintagePerms.Management.Groups;
+import com.VintageGaming.VintagePerms.Management.Users;
 import com.VintageGaming.VintagePerms.SettingsManager;
 import net.milkbowl.vault.permission.Permission;
 import com.VintageGaming.VintagePerms.PermsMain;
@@ -42,7 +43,7 @@ public class Permission_VintagePerms extends Permission {
         if (this.permission == null) {
             return false;
         }
-        return this.plugin.isEnabled();
+        return this.permission.isEnabled();
     }
 
     @Override
@@ -53,7 +54,16 @@ public class Permission_VintagePerms extends Permission {
     @Override
     public boolean has(String worldName, String playerName, String permission) {
         Player p = Bukkit.getPlayer(playerName);
-        return p.hasPermission(permission);
+        Users user = SettingsManager.getInstance().getUser(p);
+        if (user.getPermissions().contains(permission)) return true;
+
+        for (String group : user.getGroups()) {
+            Groups g = SettingsManager.getGroup(group);
+            if (g.getPerms().contains(permission) || g.getInheritedPermissions().contains(permission) || g.getWorldPerms(worldName).contains(permission)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -103,11 +113,9 @@ public class Permission_VintagePerms extends Permission {
     @Override
     public boolean groupHas(String worldName, String groupName, String permission) {
         List<String> perms = SettingsManager.getGroup(groupName).getInheritedPermissions();
+        perms.addAll(SettingsManager.getGroup(groupName).getPerms());
 
-        if (worldName.isEmpty() || worldName == null)
-            perms.addAll(SettingsManager.getGroup(groupName).getPerms());
-
-        else
+        if (!worldName.isEmpty() && worldName != null)
             perms.addAll(SettingsManager.getGroup(groupName).getWorldPerms(worldName));
 
         return perms.contains(permission);
@@ -158,15 +166,27 @@ public class Permission_VintagePerms extends Permission {
     //Custom Vault Update Methods
 
     @Override
-    public String[] getPlayerPermissions(String worldName, OfflinePlayer player) {
+    public String[] getPlayerOwnPermissions(String worldName, OfflinePlayer player) {
         return SettingsManager.getInstance().getUser(((Player) player)).getPermissions().toArray(new String[0]);
     }
 
     @Override
-    public String[] getGroupPermissions(String worldName, String groupName) {
-        if (worldName.isEmpty() || worldName == null)
+    public String[] getGroupOwnPermissions(String groupName) {
             return SettingsManager.getGroup(groupName).getPerms().toArray(new String[0]);
+    }
 
+    @Override
+    public String[] getGroupAllPermissions(String worldName, String groupName) {
+        List<String> perms = SettingsManager.getGroup(groupName).getInheritedPermissions();
+        perms.addAll(SettingsManager.getGroup(groupName).getPerms());
+        if (!worldName.isEmpty() && worldName != null)
+            perms.addAll(SettingsManager.getGroup(groupName).getWorldPerms(worldName));
+
+        return perms.toArray(new String[0]);
+    }
+
+    @Override
+    public String[] getGroupWorldPermissions(String worldName, String groupName) {
         return SettingsManager.getGroup(groupName).getWorldPerms(worldName).toArray(new String[0]);
     }
 
