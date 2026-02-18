@@ -1,22 +1,28 @@
 package net.milkbowl.vault;
 
 import java.util.Collection;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.logging.Logger;
+
 import net.milkbowl.vault.chat.Chat;
-import net.milkbowl.vault.chat.plugins.*;
 import net.milkbowl.vault.economy.Economy;
 
 import net.milkbowl.vault.economy.plugins.Economy_CMI;
-import net.milkbowl.vault.economy.plugins.Economy_CommandsEX;
 import net.milkbowl.vault.economy.plugins.Economy_Essentials;
+import net.milkbowl.vault.economy.plugins.Economy_Veco;
 import net.milkbowl.vault.permission.Permission;
 import net.milkbowl.vault.permission.plugins.*;
+import net.milkbowl.vault.veco.Veco;
+import net.milkbowl.vault.veco.commands.Player_Commands;
+import net.milkbowl.vault.veco.commands.Veco_Command;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 
 import org.bukkit.command.CommandSender;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -26,76 +32,56 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Vault extends JavaPlugin { 
    private static Logger log;
    private Permission perms;
+   private Economy econ;
+
+   private Economy_Veco veco;
+   public boolean usingVEco = true;
+
    private String currentVersionTitle = "";
    
    private ServicesManager sm;
    
-   private Vault plugin;
+   private static Vault plugin;
    
    public void onDisable() {
-     getServer().getServicesManager().unregisterAll(this);
-     Bukkit.getScheduler().cancelTasks(this);
+       Veco.saveBalances();
+       getServer().getServicesManager().unregisterAll(this);
+       Bukkit.getScheduler().cancelTasks(this);
    }
  
    
    public void onEnable() {
-     this.plugin = this;
-     log = getLogger();
-     this.currentVersionTitle = getDescription().getVersion().split("-")[0];
-     this.sm = getServer().getServicesManager();
+       plugin = this;
+       log = getLogger();
+       this.currentVersionTitle = getDescription().getVersion().split("-")[0];
+       this.sm = getServer().getServicesManager();
 
-     loadChat();
-     loadEconomy();
-     loadPermission();
+       loadEconomy();
+       loadPermission();
      
-     getCommand("vault-info").setExecutor(this);
-     getCommand("vault-convert").setExecutor(this);
+       getCommand("vault-info").setExecutor(this);
+       getCommand("vault-convert").setExecutor(this);
+
+       getCommand("veco").setExecutor(new Veco_Command());
+       getCommand("veco").setTabCompleter(new Veco_Command());
+
+       getCommand("pay").setExecutor(new Player_Commands());
+       getCommand("balance").setExecutor(new Player_Commands());
+       getCommand("pay").setTabCompleter(new Player_Commands());
+
      
-     log.info(String.format("Enabled Version %s", getDescription().getVersion()));
+       log.info(String.format("Enabled Version %s", getDescription().getVersion()));
    }
 
-    /**
-     * Attempts to load Chat Addons
-     */
-    private void loadChat() {
-        // Try to load PermissionsEx
-        hookChat("PermissionsEx", Chat_PermissionsEx.class, ServicePriority.Highest, "ru.tehkode.permissions.bukkit.PermissionsEx");
-
-        // Try to load mChatSuite
-        hookChat("mChatSuite", Chat_mChatSuite.class, ServicePriority.Highest, "in.mDev.MiracleM4n.mChatSuite.mChatSuite");
-
-        // Try to load OverPermissions
-        hookChat("OverPermissions", Chat_OverPermissions.class, ServicePriority.Highest, "com.overmc.overpermissions.internal.OverPermissions");
-
-        // Try to load DroxPerms Chat
-        hookChat("DroxPerms", Chat_DroxPerms.class, ServicePriority.Lowest, "de.hydrox.bukkit.DroxPerms.DroxPerms");
-
-        // Try to load bPermssions 2
-        hookChat("bPermssions2", Chat_bPermissions2.class, ServicePriority.Highest, "de.bananaco.bpermissions.api.ApiLayer");
-
-        // Try to load GroupManager
-        hookChat("GroupManager", Chat_GroupManager.class, ServicePriority.Normal, "org.anjocaido.groupmanager.GroupManager");
-
-        // Try to load Permissions 3 (Yeti)
-        hookChat("Permissions3", Chat_Permissions3.class, ServicePriority.Normal, "com.nijiko.permissions.ModularControl");
-
-        // Try to load iChat
-        hookChat("iChat", Chat_iChat.class, ServicePriority.Low, "net.TheDgtl.iChat.iChat");
-
-        // Try to load Privileges
-        hookChat("Privileges", Chat_Privileges.class, ServicePriority.Normal, "net.krinsoft.privileges.Privileges");
-
-        // Try to load rscPermissions
-        hookChat("rscPermissions", Chat_rscPermissions.class, ServicePriority.Normal, "ru.simsonic.rscPermissions.MainPluginClass");
-
-        //Try to load TotalPermissions
-        hookChat("TotalPermissions", Chat_TotalPermissions.class, ServicePriority.Normal, "net.ar97.totalpermissions.TotalPermissions");
-    }
-
     private void loadEconomy() {
+        veco = new Economy_Veco(this);
+        sm.register(Economy.class, veco, this, ServicePriority.Lowest);
+        econ = veco;
+        log.info(String.format("[Economy] Veco loaded as backup economy system."));
+
         hookEconomy("CMI Economy", Economy_CMI.class, ServicePriority.Normal, "com.Zrips.CMI.Modules.Economy.Economy");
         hookEconomy("Essentials Economy", Economy_Essentials.class, ServicePriority.Low, "com.earth2me.essentials.api.Economy", "com.earth2me.essentials.api.NoLoanPermittedException", "com.earth2me.essentials.api.UserDoesNotExistException");
-        hookEconomy("CommandsEX", Economy_CommandsEX.class, ServicePriority.Normal, "com.github.zathrus_writer.commandsex.api.EconomyAPI");
+
     }
 
     /**
@@ -103,53 +89,15 @@ public class Vault extends JavaPlugin {
      */
     private void loadPermission() {
 
-        // Try to load Starburst
-        hookPermission("Starburst", Permission_Starburst.class, ServicePriority.Highest, "com.dthielke.starburst.StarburstPlugin");
-
         // Try to load PermissionsEx
         hookPermission("PermissionsEx", Permission_PermissionsEx.class, ServicePriority.Highest, "ru.tehkode.permissions.bukkit.PermissionsEx");
-
-        // Try to load OverPermissions
-        hookPermission("OverPermissions", Permission_OverPermissions.class, ServicePriority.Highest, "com.overmc.overpermissions.internal.OverPermissions");
-
-        // Try to load PermissionsBukkit
-        hookPermission("PermissionsBukkit", Permission_PermissionsBukkit.class, ServicePriority.Normal, "com.platymuus.bukkit.permissions.PermissionsPlugin");
-
-        // Try to load DroxPerms
-        hookPermission("DroxPerms", Permission_DroxPerms.class, ServicePriority.High, "de.hydrox.bukkit.DroxPerms.DroxPerms");
-
-        // Try to load SimplyPerms
-        hookPermission("SimplyPerms", Permission_SimplyPerms.class, ServicePriority.Highest, "net.crystalyx.bukkit.simplyperms.SimplyPlugin");
-
-        // Try to load bPermissions2
-        hookPermission("bPermissions 2", Permission_bPermissions2.class, ServicePriority.Highest, "de.bananaco.bpermissions.api.WorldManager");
-
-        // Try to load Privileges
-        hookPermission("Privileges", Permission_Privileges.class, ServicePriority.Highest, "net.krinsoft.privileges.Privileges");
 
         // Try to load GroupManager
         hookPermission("GroupManager", Permission_GroupManager.class, ServicePriority.High, "org.anjocaido.groupmanager.GroupManager");
 
-        // Try to load Permissions 3 (Yeti)
-        hookPermission("Permissions 3 (Yeti)", Permission_Permissions3.class, ServicePriority.Normal, "com.nijiko.permissions.ModularControl");
-
-        //Try to load TotalPermissions
-        hookPermission("TotalPermissions", Permission_TotalPermissions.class, ServicePriority.Normal, "net.ae97.totalpermissions.TotalPermissions");
-
-        // Try to load rscPermissions
-        hookPermission("rscPermissions", Permission_rscPermissions.class, ServicePriority.Normal, "ru.simsonic.rscPermissions.MainPluginClass");
-
-        // Try to load KPerms
-        hookPermission("KPerms", Permission_KPerms.class, ServicePriority.Normal, "com.lightniinja.kperms.KPermsPlugin");
-
-        // Try to load VintagePerms
-        hookPermission("VintagePerms", Permission_VintagePerms.class, ServicePriority.Highest, "com.VintageGaming.VintagePerms.PermsMain");
-
         Permission perms = new Permission_SuperPerms(this);
         sm.register(Permission.class, perms, this, ServicePriority.Lowest);
         log.info(String.format("[Permission] SuperPermissions loaded as backup permission system."));
-
-        this.perms = sm.getRegistration(Permission.class).getProvider();
     }
 
    private void hookChat(String name, Class<? extends Chat> hookClass, ServicePriority priority, String... packages) {
@@ -171,6 +119,8 @@ public class Vault extends JavaPlugin {
          Economy econ = hookClass.getConstructor( Plugin.class ).newInstance(this);
          this.sm.register(Economy.class, econ, this, priority);
          log.info(String.format("[Economy] %s found: %s", name, econ.isEnabled() ? "Loaded" : "Waiting"));
+         usingVEco = false;
+         this.econ = econ;
        } 
      } catch (Exception e) {
        log.severe(String.format("[Economy] There was an error hooking %s - check to make sure you're using a compatible version!", name));
@@ -184,12 +134,49 @@ public class Vault extends JavaPlugin {
          Permission perms = hookClass.getConstructor(new Class[] { Plugin.class }).newInstance(this);
          this.sm.register(Permission.class, perms, this, priority);
          log.info(String.format("[Permission] %s found: %s", name, perms.isEnabled() ? "Loaded" : "Waiting"));
+         this.perms = perms;
        } 
      } catch (Exception e) {
        log.severe(String.format("[Permission] There was an error hooking %s - check to make sure you're using a compatible version!", name));
      } 
    }
- 
+
+   public Permission getPerms() {
+        return perms;
+   }
+
+   public Economy getEcon() {
+     return econ;
+   }
+
+   public Economy_Veco getVeco() {
+     return veco;
+   }
+
+   public static Vault getInstance() {
+        return plugin;
+   }
+
+    public static UUID getUUIDFromName(String name) {
+        Player onlinePlayer = Bukkit.getPlayerExact(name);
+        if (onlinePlayer != null) {
+            return onlinePlayer.getUniqueId();
+        }
+
+        @SuppressWarnings("deprecation")
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
+
+        try {
+            if (offlinePlayer.hasPlayedBefore()) {
+                return offlinePlayer.getUniqueId();
+            }
+        }
+        catch (NoSuchElementException e) {
+            return null;
+        }
+
+        return null;
+    }
    
    public boolean onCommand(CommandSender sender, Command command, String commandLabel, String[] args) {
      if (!sender.hasPermission("vault.admin")) {
@@ -334,4 +321,22 @@ public class Vault extends JavaPlugin {
        return false;
      } 
    }
+
+    public static class UserCacheEntry {
+        private String name;
+        private String uuid;
+        private String expiresOn;
+
+        public String getName() {
+            return name;
+        }
+
+        public String getUuid() {
+            return uuid;
+        }
+
+        public String getExpiresOn() {
+            return expiresOn;
+        }
+    }
  }

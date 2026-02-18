@@ -2,6 +2,7 @@ package net.milkbowl.vault.permission;
 
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.character.Character;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -254,7 +255,7 @@ public abstract class Permission
   }
 
   public boolean playerRemoveGroup(String world, @Nonnull OfflinePlayer player, @Nonnull String group) {
-     if (world == null) {
+      if (world == null) {
        return playerRemoveGroup((String)null, player.getName(), group);
     }
      return playerRemoveGroup(world, player.getName(), group);

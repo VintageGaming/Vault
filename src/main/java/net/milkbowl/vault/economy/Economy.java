@@ -108,8 +108,120 @@ public interface Economy {
   
   boolean createPlayerAccount(OfflinePlayer player, String worldName);
 
-  // -------VaultUnlocked / Vault2 Method Implementation-------
+  // --------------------------------------------------------------------------------------------------------
+  // --------------------------------VintageVault Specific Methods-------------------------------------------
+  // --------------------------------Renamed VaultUnlocked Methods-------------------------------------------
+  // --------------------------------------------------------------------------------------------------------
 
+
+    // Return how many Decimal Points the plugin supports
+    default int numberOfDecimals() {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default int numberOfDecimals(String currency) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean createCurrency(String currency, String singularName, String pluralName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean createCurrency(String currency, String singularName, String pluralName, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    // Returns Whether the currency exists and or supported, with an option to specify a world
+    default boolean hasCurrency(String currency, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean getDefaultCurrency() {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean getDefaultCurrency(String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getDefaultCurrencyName() {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getDefaultCurrencyName(String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getDefaultCurrencyPlural() {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getDefaultCurrencyPlural(String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String[] getCurrencies() {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String[] getCurrencies(String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default BigDecimal getAccountBalance(UUID accountId) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default BigDecimal getAccountBalance(UUID accountId, String currency) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default BigDecimal getAccountBalance(UUID accountId, String currency, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountHas(UUID accountId, BigDecimal amount) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountHas(UUID accountId, BigDecimal amount, String currency) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String currency, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountSupportsCurrency(UUID accountId, String currency) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean accountSupportsCurrency(UUID accountId, String currency, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean renameAccount(UUID accountID, String name, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean deleteAccount(UUID accountId) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean deleteAccount(UUID accountId, String worldName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+
+
+  // --------------------------------------------------------------------------------------------------------
+  // ---------------------------VaultUnlocked / Vault2 Method Implementation---------------------------------
+  // ---------------------------------Removed ALL pluginName Parameters--------------------------------------
+  // --------------------------------------------------------------------------------------------------------
     /**
      * Returns true if the economy plugin supports shared accounts.
      *
@@ -133,45 +245,14 @@ public interface Economy {
      */
 
     /**
-     * Some economy plugins round off after a certain number of digits. This
-     * function returns the number of digits the plugin keeps or -1 if no rounding
-     * occurs.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @return number of digits after the decimal point this plugin supports or -1
-     *         if no rounding occurs.
-     */
-    default int fractionalDigits(@NotNull final String pluginName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Retrieves the number of fractional digits for the specified currency associated with the given plugin. This
-     * function returns the number of digits the plugin keeps or -1 if no rounding
-     * occurs.
-     *
-     * @param pluginName the name of the plugin; must not be null
-     * @param currency the currency for which the fractional digits are to be retrieved; must not be null
-     * @return the number of fractional digits for the specified currency or -1
-     *         if no rounding occurs.
-     */
-    default int fractionalDigits(@NotNull final String pluginName, @NotNull final String currency) {
-        return fractionalDigits(pluginName);
-    }
-
-    /**
      * Plugins use this method to format a given BigDecimal amount into a human-readable
      * amount using your economy plugin's currency names/conventions.
-     *
-     * @deprecated This method is deprecated as of version 2.8, and has been replaced by {@link #format(String, BigDecimal)}.
-     * This allows economy plugins to know exactly if the account is a player or not. This may be removed in a future release.
      *
      * @param amount to format.
      *
      * @return Human-readable string describing amount, ie 5 Dollars or 5.55 Pounds.
      */
     @NotNull
-    @Deprecated
     default String format(@NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
@@ -180,46 +261,13 @@ public interface Economy {
      * Plugins use this method to format a given BigDecimal amount into a human-readable
      * amount using your economy plugin's currency names/conventions.
      *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param amount to format.
-     *
-     * @return Human-readable String describing amount, ie 5 Dollars or 5.55 Pounds.
-     */
-    @NotNull
-    default String format(@NotNull final String pluginName, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Plugins use this method to format a given BigDecimal amount into a human-readable
-     * amount using your economy plugin's currency names/conventions.
-     *
-     * @deprecated This method is deprecated as of version 2.8, and has been replaced by {@link #format(String, BigDecimal, String)}.
-     * This allows economy plugins to know exactly if the account is a player or not. This may be removed in a future release.
-     *
      * @param amount to format.
      * @param currency the currency to use for the format.
      *
      * @return Human-readable string describing amount, ie 5 Dollars or 5.55 Pounds.
      */
     @NotNull
-    @Deprecated
     default String format(@NotNull final BigDecimal amount, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Plugins use this method to format a given BigDecimal amount into a human-readable
-     * amount using your economy plugin's currency names/conventions.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param amount to format.
-     * @param currency the currency to use for the format.
-     *
-     * @return Human-readable String describing amount, ie 5 Dollars or 5.55 Pounds.
-     */
-    @NotNull
-    default String format(@NotNull final String pluginName, @NotNull final BigDecimal amount, @NotNull final String currency){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -231,56 +279,6 @@ public interface Economy {
      * @return true if a currency with the specified name exists.
      */
     default boolean hasCurrency(@NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Used to get the default currency. This could be the default currency for the server globally or
-     * for the default world if the implementation supports multi-world.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @return The currency that is the default for the server if multi-world support is not available
-     * otherwise the default for the default world.
-     *
-     */
-    @NotNull
-    default String getDefaultCurrency(@NotNull final String pluginName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Returns the name of the default currency in plural form. If the economy being used
-     * does not support currency names then an empty string will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @return name of the currency (plural) ie: Dollars or Pounds.
-     */
-    @NotNull
-    default String defaultCurrencyNamePlural(@NotNull final String pluginName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Returns the name of the default currency in singular form. If the economy being used
-     * does not support currency names then an empty string will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @return name of the currency (singular) ie: Dollar or Pound.
-     */
-    @NotNull
-    default String defaultCurrencyNameSingular(@NotNull final String pluginName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Returns a list of currencies used by the economy plugin. These are able to be used
-     * in the calls in the methods of the API. May not be human-readable.
-     *
-     * @return list of currencies used by the economy plugin. These are able to be used
-     * in the calls in the methods of the API.
-     */
-    @NotNull
-    default Collection<String> currencies(){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -406,218 +404,28 @@ public interface Economy {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
-    /**
-     * Renames the account with the specified ID in the given plugin to the new name.
-     *
-     * @param plugin The plugin name where the account exists
-     * @param accountID The unique identifier of the account to be renamed
-     * @param name The new name to assign to the account
-     *
-     * @return true if the rename operation was successful, false otherwise
-     */
-    default boolean renameAccount(@NotNull final String plugin, @NotNull final UUID accountID, @NotNull final String name){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Deletes the account associated with the specified UUID.
-     *
-     * @param plugin the name of the plugin managing the account
-     * @param accountID the UUID of the account to be deleted
-     * @return true if the account was successfully deleted, false otherwise
-     */
-    default boolean deleteAccount(@NotNull final String plugin, @NotNull final UUID accountID){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
     /*
      * Account balance related methods follow.
      */
 
     /**
-     * Determines whether an account supports a specific currency.
-     *
-     * @param plugin    the name of the plugin
-     * @param accountID      the UUID of the account
-     * @param currency  the currency to check support for
-     * @return true if the account supports the currency, false otherwise
-     */
-    default boolean accountSupportsCurrency(@NotNull final String plugin, @NotNull final UUID accountID, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Checks if the given account supports the specified currency in the given world.
-     *
-     * @param plugin   the name of the plugin requesting the check
-     * @param accountID     the UUID of the player account
-     * @param currency the currency code to check support for
-     * @param world    the name of the world to check in
-     * @return true if the account supports the currency in the world, false otherwise
-     */
-    default boolean accountSupportsCurrency(@NotNull final String plugin, @NotNull final UUID accountID, @NotNull final String currency, @NotNull final String world){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Gets balance of an account associated with a UUID.
-     *
-     * @deprecated This method is deprecated as of version 2.9, and has been replaced by {@link #balance(String, UUID)}.
-     * This allows economy plugins to know exactly if the account is a player or not. This may be removed in a future release.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID UUID of the account to get a balance for.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    @Deprecated
-    default BigDecimal getBalance(@NotNull final String pluginName, @NotNull final UUID accountID){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Gets balance of a UUID on the specified world. IMPLEMENTATION SPECIFIC - if
-     * an economy plugin does not support this the global balance will be returned.
-     *
-     * @deprecated This method is deprecated as of version 2.9, and has been replaced by {@link #balance(String, UUID, String)}.
-     * This allows economy plugins to know exactly if the account is a player or not. This may be removed in a future release.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID  UUID of the account to get a balance for.
-     * @param world name of the world.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    @Deprecated
-    default BigDecimal getBalance(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String world){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Gets balance of a UUID on the specified world. IMPLEMENTATION SPECIFIC - if
-     * an economy plugin does not support this the global balance will be returned.
-     *
-     * @deprecated This method is deprecated as of version 2.9, and has been replaced by {@link #balance(String, UUID, String, String)}.
-     * This allows economy plugins to know exactly if the account is a player or not. This may be removed in a future release.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID  UUID of the account to get a balance for.
-     * @param world name of the world.
-     * @param currency the currency to use.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    @Deprecated
-    default BigDecimal getBalance(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String world, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Gets balance of an account associated with a UUID.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID UUID of the account to get a balance for.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    default BigDecimal balance(@NotNull final String pluginName, @NotNull final UUID accountID) {
-        return getBalance(pluginName, accountID);
-    }
-
-    /**
-     * Gets balance of a UUID on the specified world. IMPLEMENTATION SPECIFIC - if
-     * an economy plugin does not support this the global balance will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID  UUID of the account to get a balance for.
-     * @param world name of the world.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    default BigDecimal balance(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String world) {
-        return getBalance(pluginName, accountID, world);
-    }
-
-    /**
-     * Gets balance of a UUID on the specified world. IMPLEMENTATION SPECIFIC - if
-     * an economy plugin does not support this the global balance will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID  UUID of the account to get a balance for.
-     * @param world name of the world.
-     * @param currency the currency to use.
-     * @return Amount currently held in account associated with the given UUID.
-     */
-    @NotNull
-    default BigDecimal balance(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String world, @NotNull final String currency) {
-        return getBalance(pluginName, accountID, world, currency);
-    }
-
-    /**
-     * Checks if the account associated with the given UUID has the amount - DO NOT
-     * USE NEGATIVE AMOUNTS.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID   the UUID associated with the account to check the balance of.
-     * @param amount the amount to check for.
-     * @return True if <b>UUID</b> has <b>amount</b>, False else wise.
-     */
-    default boolean has(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Checks if the account associated with the given UUID has the amount in the
-     * given world - DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an
-     * economy plugin does not support this the global balance will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID      the UUID associated with the account to check the balance of.
-     * @param worldName the name of the world to check in.
-     * @param amount    the amount to check for.
-     * @return True if <b>UUID</b> has <b>amount</b> in the given <b>world</b>,
-     *         False else wise.
-     */
-    default boolean has(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
-     * Checks if the account associated with the given UUID has the amount in the
-     * given world - DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an
-     * economy plugin does not support this the global balance will be returned.
-     *
-     * @param pluginName The name of the plugin that is calling the method.
-     * @param accountID      the UUID associated with the account to check the balance of.
-     * @param worldName the name of the world to check in.
-     * @param currency the currency to use.
-     * @param amount    the amount to check for.
-     * @return True if <b>UUID</b> has <b>amount</b> in the given <b>world</b>,
-     *         False else wise.
-     */
-    default boolean has(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
-    }
-
-    /**
      *
      * Sets the amount of monies for a player.
      *
-     * @param pluginName the name of the plugin setting the currency
      * @param accountID the unique identifier of the player's account
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse set(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final BigDecimal amount) {
 
-        final BigDecimal balance = balance(pluginName, accountID);
+        final BigDecimal balance = getAccountBalance(accountID);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return withdraw(pluginName, accountID, balance.subtract(amount));
+            return accountWithdraw(accountID, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return deposit(pluginName, accountID, amount.subtract(balance));
+            return accountDeposit(accountID, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -627,22 +435,21 @@ public interface Economy {
      *
      * Sets the amount of monies for a player in a specific world.
      *
-     * @param pluginName the name of the plugin setting the currency
      * @param accountID the unique identifier of the player's account
      * @param worldName the name of the world where the currency amount is being set
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse set(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
 
-        final BigDecimal balance = balance(pluginName, accountID, worldName);
+        final BigDecimal balance = getAccountBalance(accountID, worldName);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return withdraw(pluginName, accountID, worldName, balance.subtract(amount));
+            return accountWithdraw(accountID, worldName, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return deposit(pluginName, accountID, worldName, amount.subtract(balance));
+            return accountDeposit(accountID, worldName, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -652,23 +459,22 @@ public interface Economy {
      *
      * Sets the amount of specified currency for a player in a specific world.
      *
-     * @param pluginName the name of the plugin setting the currency
      * @param accountID the unique identifier of the player's account
      * @param worldName the name of the world where the currency amount is being set
      * @param currency the name of the currency being set
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse set(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
 
-        final BigDecimal balance = balance(pluginName, accountID, worldName, currency);
+        final BigDecimal balance = getAccountBalance(accountID, worldName, currency);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return withdraw(pluginName, accountID, worldName, currency, balance.subtract(amount));
+            return accountWithdraw(accountID, worldName, currency, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return deposit(pluginName, accountID, worldName, currency, amount.subtract(balance));
+            return accountDeposit(accountID, worldName, currency, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -678,7 +484,6 @@ public interface Economy {
      * Withdraw an amount from an account associated with a UUID - DO NOT USE
      * NEGATIVE AMOUNTS.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID   the UUID associated with the account to withdraw from.
      * @param amount Amount to withdraw.
      * @return {@link EconomyResponse} which includes the Economy plugin's
@@ -686,7 +491,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse withdraw(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -695,7 +500,6 @@ public interface Economy {
      * DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an economy plugin
      * does not support this the global balance will be returned.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID      the UUID associated with the account to withdraw from.
      * @param worldName the name of the world to check in.
      * @param amount    Amount to withdraw.
@@ -704,7 +508,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse withdraw(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -713,7 +517,6 @@ public interface Economy {
      * DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an economy plugin
      * does not support this the global balance will be returned.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID      the UUID associated with the account to withdraw from.
      * @param worldName the name of the world to check in.
      * @param currency the currency to use.
@@ -723,7 +526,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse withdraw(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -731,7 +534,6 @@ public interface Economy {
      * Deposit an amount to an account associated with the given UUID - DO NOT USE
      * NEGATIVE AMOUNTS.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID   the UUID associated with the account to deposit to.
      * @param amount Amount to deposit.
      * @return {@link EconomyResponse} which includes the Economy plugin's
@@ -739,7 +541,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse deposit(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -748,7 +550,6 @@ public interface Economy {
      * DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an economy plugin
      * does not support this the global balance will be returned.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID  the {@link UUID} associated with the account to deposit to.
      * @param worldName the name of the world to check in.
      * @param amount    Amount to deposit.
@@ -757,7 +558,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse deposit(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -766,7 +567,6 @@ public interface Economy {
      * DO NOT USE NEGATIVE AMOUNTS IMPLEMENTATION SPECIFIC - if an economy plugin
      * does not support this the global balance will be returned.
      *
-     * @param pluginName The name of the plugin that is calling the method.
      * @param accountID      the {@link UUID} associated with the account to deposit to.
      * @param worldName the name of the world to check in.
      * @param currency the currency to use.
@@ -776,7 +576,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse deposit(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -787,156 +587,143 @@ public interface Economy {
     /**
      * Creates a shared account with the specified parameters.
      *
-     * @param pluginName the name of the plugin
      * @param accountID  the {@link UUID} of the account
      * @param name       the name of the account
      * @param owner      the {@link UUID} of the account owner
      * @return true if the shared account is successfully created, false otherwise
      */
-    default boolean createSharedAccount(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final String name, @NotNull final UUID owner){
+    default boolean createSharedAccount(@NotNull final UUID accountID, @NotNull final String name, @NotNull final UUID owner){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Retrieves a list of account IDs owned by the specified account ID.
      *
-     * @param pluginName the name of the plugin
      * @param accountID the unique identifier of the account
      * @return a list of account names owned by the specified account ID
      *
      * @since 2.14
      */
-    default List<String> accountsOwnedBy(@NotNull final String pluginName, @NotNull final UUID accountID) {
-        return accountsAccessTo(pluginName, accountID, AccountPermission.OWNER);
+    default List<String> accountsOwnedBy(@NotNull final UUID accountID) {
+        return accountsAccessTo(accountID, AccountPermission.OWNER);
     }
 
     /**
      * Retrieves a list of account IDs that the specified account is a member of.
      *
-     * @param pluginName the name of the plugin
      * @param accountID the UUID of the account to check membership for
      * @return a List of String values representing the accounts that the account is a member of
      *
      * @since 2.14
      */
-    default List<String> accountsMemberOf(@NotNull final String pluginName, @NotNull final UUID accountID) {
-        return accountsAccessTo(pluginName, accountID, AccountPermission.BALANCE, AccountPermission.DEPOSIT, AccountPermission.WITHDRAW);
+    default List<String> accountsMemberOf(@NotNull final UUID accountID) {
+        return accountsAccessTo(accountID, AccountPermission.BALANCE, AccountPermission.DEPOSIT, AccountPermission.WITHDRAW);
     }
 
     /**
      * Retrieves a list of account IDs that the specified account has the specified permissions for.
      *
-     * @param pluginName the name of the plugin
      * @param accountID the UUID of the account to check access for
      * @param permissions variable number of permissions to check for
      * @return a list of accounts that the account has the specified permissions to
      *
      * @since 2.14
      */
-    default List<String> accountsAccessTo(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final AccountPermission... permissions) {
+    default List<String> accountsAccessTo(@NotNull final UUID accountID, @NotNull final AccountPermission... permissions) {
         return new ArrayList<>();
     }
 
     /**
      * Determines whether the specified owner ID is the owner of the account associated with the given account ID and plugin name.
      *
-     * @param pluginName the name of the plugin
      * @param accountID the {@link UUID} of the account
      * @param uuid the {@link UUID} to check for ownership of the account
      * @return true if the owner ID is the owner of the account, false otherwise
      */
-    default boolean isAccountOwner(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid){
+    default boolean isAccountOwner(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Sets the owner of a specified plugin to the given accountID.
      *
-     * @param pluginName The name of the plugin.
      * @param accountID  The {@link UUID} of the account
      * @param uuid       The {@link UUID} of the account to set as the owner.
      * @return true if the owner is successfully set, false otherwise.
      */
-    default boolean setOwner(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid){
+    default boolean setAccountOwner(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Determines whether a specific member is an account member of a given plugin.
      *
-     * @param pluginName The name of the plugin.
      * @param accountID The {@link UUID} of the account.
      * @param uuid The {@link UUID} to check for membership.
      * @return true if the member is an account member, false otherwise.
      */
-    default boolean isAccountMember(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid){
+    default boolean isAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Adds a member to an account.
      *
-     * @param pluginName The name of the plugin.
      * @param accountID  The {@link UUID} of the account.
      * @param uuid       The {@link UUID} of the member to be added.
      * @return true if the member was successfully added, false otherwise.
      */
-    default boolean addAccountMember(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid){
+    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Adds a member to an account with the specified initial permissions.
      *
-     * @param pluginName The name of the plugin.
      * @param accountID The {@link UUID} of the account.
      * @param uuid The {@link UUID} of the member to be added.
      * @param initialPermissions The initial permissions to be assigned to the member. The values for
      *                           these should be assumed to be "true."
      * @return true if the member was added successfully, false otherwise.
      */
-    default boolean addAccountMember(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission... initialPermissions){
+    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission... initialPermissions){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Removes a member from an account.
      *
-     * @param pluginName the name of the plugin managing the account
      * @param accountID the {@link UUID} of the account
      * @param uuid the {@link UUID} of the member to be removed
      * @return true if the member was successfully removed, false otherwise
      */
-    default boolean removeAccountMember(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid){
+    default boolean removeAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Checks if the specified account has the given permission for the given plugin.
      *
-     * @param pluginName   the name of the plugin to check permission for
      * @param accountID    the {@link UUID} of the account
      * @param uuid         the {@link UUID} to check for the permission
      * @param permission   the permission to check for
      * @return true if the account has the specified permission, false otherwise
      */
-    default boolean hasAccountPermission(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission){
+    default boolean hasAccountPermission(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
     /**
      * Updates the account permission for a specific plugin and user.
      *
-     * @param pluginName   the name of the plugin
      * @param accountID    the {@link UUID} of the account
      * @param uuid         the {@link UUID} to update the permission for
      * @param permission   the new account permissions to set
      * @param value        the new permission value to set for this value
      * @return true if the account permission was successfully updated, false otherwise
      */
-    default boolean updateAccountPermission(@NotNull final String pluginName, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
+    default boolean updateAccountPermission(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
-
 
 }
