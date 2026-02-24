@@ -1,5 +1,5 @@
 name: Vault
-version: 1.8.5
+version: 1.8.6
 description: Vault is a Permissions & Economy API to allow plugins to more easily hook into these systems without needing to hook each individual system themselves.
 
 Vault currently supports the following: Permissions 3, PEX, GroupManager, bPerms, bPerms2, SimplyPerms, DroxPerms, zPermissions, rscPermissions, KPerms, Starburst, EssentialsEcon, and OverPermissions

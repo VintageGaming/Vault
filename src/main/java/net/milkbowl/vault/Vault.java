@@ -235,7 +235,7 @@ public class Vault extends JavaPlugin {
      return true;
    }
 
-   // Used to help implement custom item plugins
+   // Used to help implement/test custom item plugins
    private void testCommand(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) return;
 

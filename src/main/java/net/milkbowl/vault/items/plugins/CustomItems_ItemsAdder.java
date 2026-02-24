@@ -3,7 +3,6 @@ package net.milkbowl.vault.items.plugins;
 import dev.lone.itemsadder.api.CustomBlock;
 import dev.lone.itemsadder.api.CustomStack;
 import dev.lone.itemsadder.api.ItemsAdder;
-import net.milkbowl.vault.items.CustomItems;
 import net.milkbowl.vault.items.api.CustomItemProvider;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;

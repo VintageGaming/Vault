@@ -4,7 +4,7 @@
   <groupId>com.github.VintageGaming</groupId>
   <artifactId>Vault</artifactId>
   <name>Vault</name>
-  <version>1.8.5</version>
+  <version>1.8.6</version>
   <build>
     <defaultGoal>clean package</defaultGoal>
     <resources>
