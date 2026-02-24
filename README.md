@@ -1,5 +1,5 @@
 ## For Developers:
-Please see the Custom [VaultAPI](https://www.github.com/VintageGaming/VaultAPI) page for
+Please see the Custom [VaultAPI](https://github.com/VintageGaming/Vault/wiki/API-Usage) page for
 information on developing with Vault's API.
 
 ## Installing
