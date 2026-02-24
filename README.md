@@ -100,7 +100,11 @@ new plugin connectors.
   - rscPermissions
   - TotalPermissions (https://dev.bukkit.org/projects/totalpermissions)
   - Chat Plugins Already Developed for the Original Vault and or Utilizing the Vault2 API
- 
+
+* CustomItems
+  = Oraxen
+  - [Needs Testing] ItemsAdder
+  - [Needs Testing] Nexo
 
   ## Credit/Contributors
 
