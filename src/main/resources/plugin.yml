@@ -22,6 +22,11 @@ commands:
     usage: |
            /<command> [economy1] [economy2]
     permission: vault.admin
+  vault-test:
+    description: Test Command
+    usage: |
+      /<command> [itemId]
+    permission: vault.admin
   veco:
     description: Give or Take Money from a Player
     usage: |

@@ -37,7 +37,7 @@ public class Economy_CMI extends AbstractEconomy {
       File file = new File("plugins" + File.separator + "CMI" + File.separator + "config.yml");
       Plugin vault = Bukkit.getPluginManager().getPlugin("Vault");
       if (vault == null) {
-        log.info("Could not finf Vault plugin");
+        log.info("Could not find Vault plugin");
         return;
       } 
       Vault vaultP = (Vault)vault;

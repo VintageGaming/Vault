@@ -42,21 +42,25 @@
       <url>https://jitpack.io</url>
     </repository>
     <repository>
-      <id>pub-repo</id>
-      <name>Public Releases</name>
-      <url>http://nexus.hc.to/content/repositories/pub_releases/</url>
-    </repository>
-    <repository>
       <id>spigotmc-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
     <repository>
-      <id>escapecraft-repo</id>
-      <url>http://dev.escapecraft.com/maven</url>
-    </repository>
-    <repository>
       <id>codemc-repo</id>
       <url>https://repo.codemc.org/repository/maven-public</url>
+    </repository>
+    <repository>
+      <id>oraxen</id>
+      <name>Oraxen Repository</name>
+      <url>https://repo.oraxen.com/releases</url>
+    </repository>
+    <repository>
+      <id>matteodev</id>
+      <url>https://maven.devs.beer/</url>
+    </repository>
+    <repository>
+      <id>nexo</id>
+      <url>https://repo.nexomc.com/releases</url>
     </repository>
   </repositories>
   <dependencies>
@@ -65,6 +69,76 @@
       <artifactId>spigot-api</artifactId>
       <version>1.21.11-R0.2-SNAPSHOT</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>dev.lone</groupId>
+      <artifactId>api-itemsadder</artifactId>
+      <version>4.0.10</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.nexomc</groupId>
+      <artifactId>nexo</artifactId>
+      <version>1.19.1</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>triumph-gui</artifactId>
+          <groupId>dev.triumphteam</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.th0rgal</groupId>
+      <artifactId>oraxen</artifactId>
+      <version>1.207.0</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>actions-spigot</artifactId>
+          <groupId>me.gabytm.util</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>annotations</artifactId>
+          <groupId>org.jetbrains</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>PlayerAnimator</artifactId>
+          <groupId>com.ticxo</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>IF</artifactId>
+          <groupId>com.github.stefvanschie.inventoryframework</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>protectionlib</artifactId>
+          <groupId>io.th0rgal</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>triumph-gui</artifactId>
+          <groupId>dev.triumphteam</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>bstats-bukkit</artifactId>
+          <groupId>org.bstats</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>custom-block-data</artifactId>
+          <groupId>com.jeff-media</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>persistent-data-serializer</artifactId>
+          <groupId>com.jeff-media</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>MorePersistentDataTypes</artifactId>
+          <groupId>com.jeff_media</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>java</artifactId>
+          <groupId>gs.mclo</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.earth2me.essentials.Essentials</groupId>

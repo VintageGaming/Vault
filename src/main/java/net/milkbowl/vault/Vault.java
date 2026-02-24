@@ -11,18 +11,26 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.plugins.Economy_CMI;
 import net.milkbowl.vault.economy.plugins.Economy_Essentials;
 import net.milkbowl.vault.economy.plugins.Economy_Veco;
+import net.milkbowl.vault.items.api.CustomItemProvider;
+import net.milkbowl.vault.items.api.CustomItemRegistry;
+import net.milkbowl.vault.items.CustomItems;
+import net.milkbowl.vault.items.plugins.CustomItems_ItemsAdder;
+import net.milkbowl.vault.items.plugins.CustomItems_Nexo;
+import net.milkbowl.vault.items.plugins.CustomItems_Oraxen;
 import net.milkbowl.vault.permission.Permission;
 import net.milkbowl.vault.permission.plugins.*;
 import net.milkbowl.vault.veco.Veco;
 import net.milkbowl.vault.veco.commands.Player_Commands;
 import net.milkbowl.vault.veco.commands.Veco_Command;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 
 import org.bukkit.command.CommandSender;
 
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -36,6 +44,8 @@ public class Vault extends JavaPlugin {
 
    private Economy_Veco veco;
    public boolean usingVEco = true;
+
+   private CustomItemRegistry registry;
 
    private String currentVersionTitle = "";
    
@@ -56,11 +66,14 @@ public class Vault extends JavaPlugin {
        this.currentVersionTitle = getDescription().getVersion().split("-")[0];
        this.sm = getServer().getServicesManager();
 
+       loadCustomItems();
        loadEconomy();
        loadPermission();
      
        getCommand("vault-info").setExecutor(this);
        getCommand("vault-convert").setExecutor(this);
+       getCommand("vault-test").setExecutor(this);
+
 
        getCommand("veco").setExecutor(new Veco_Command());
        getCommand("veco").setTabCompleter(new Veco_Command());
@@ -100,6 +113,16 @@ public class Vault extends JavaPlugin {
         log.info(String.format("[Permission] SuperPermissions loaded as backup permission system."));
     }
 
+    private void loadCustomItems() {
+        registry = new CustomItems();
+        sm.register(CustomItemRegistry.class, registry, this, ServicePriority.Highest);
+        log.info("[CustomItems] Custom Items Bridge Loaded");
+
+        hookCustomItems("ItemsAdder", new CustomItems_ItemsAdder(this), "dev.lone.itemsadder.api.ItemsAdder");
+        hookCustomItems("Oraxen", new CustomItems_Oraxen(this), "io.th0rgal.oraxen.OraxenPlugin");
+        hookCustomItems("Nexo", new CustomItems_Nexo(this), "com.nexomc.nexo.NexoPlugin");
+    }
+
    private void hookChat(String name, Class<? extends Chat> hookClass, ServicePriority priority, String... packages) {
      try {
        if (packagesExists(packages)) {
@@ -111,7 +134,6 @@ public class Vault extends JavaPlugin {
        log.severe(String.format("[Chat] There was an error hooking %s - check to make sure you're using a compatible version!", name));
      } 
    }
-
 
    private void hookEconomy(String name, Class<? extends Economy> hookClass, ServicePriority priority, String... packages) {
      try {
@@ -139,6 +161,17 @@ public class Vault extends JavaPlugin {
      } catch (Exception e) {
        log.severe(String.format("[Permission] There was an error hooking %s - check to make sure you're using a compatible version!", name));
      } 
+   }
+
+   private void hookCustomItems(String name, CustomItemProvider customItemProvider, String... packages) {
+        try {
+            if (packagesExists(packages)) {
+                registry.registerProvider(customItemProvider);
+                log.info(String.format("[CustomItems][%s] hooked!", name));
+            }
+        } catch (Exception e) {
+            log.severe(String.format("[CustomItems] There was an error hooking %s - check to make sure you're using a compatible version!", name));
+        }
    }
 
    public Permission getPerms() {
@@ -190,12 +223,43 @@ public class Vault extends JavaPlugin {
      }  if (command.getName().equalsIgnoreCase("vault-convert")) {
        convertCommand(sender, args);
        return true;
-     } 
+     }
+     if (command.getName().equalsIgnoreCase("vault-test")) {
+         testCommand(sender, args);
+         return true;
+     }
      
      sender.sendMessage("Vault Commands:");
      sender.sendMessage("  /vault-info - Displays information about Vault");
      sender.sendMessage("  /vault-convert [economy1] [economy2] - Converts from one Economy to another");
      return true;
+   }
+
+   // Used to help implement custom item plugins
+   private void testCommand(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) return;
+
+
+        if (args.length < 1) {
+            for (String itemId : registry.getCustomItemIds("ItemsAdder")) {
+                player.sendMessage("Custom Item ID: " + itemId);
+            }
+        }
+
+        if (args.length == 1) {
+            if (player.getInventory().getItemInMainHand().getType() != Material.AIR) {
+                ItemStack hand = player.getInventory().getItemInMainHand();
+                player.sendMessage("Found Item in Hand: " + registry.isCustomItem(hand));
+                if (registry.isCustomItem(hand))
+                    player.sendMessage("Found Custom Item Provider: " + registry.getCustomItemStackProvider(hand));
+            }
+            player.sendMessage("Testing CustomId: " + args[0]);
+            player.sendMessage("Found Custom Item in ItemsAdder: " + registry.customItemExists(args[0], "ItemsAdder"));
+            player.sendMessage("Found Custom Item: " + registry.customItemExists(args[0]));
+            if (registry.customItemExists(args[0], "ItemsAdder"))
+                player.getInventory().addItem(registry.getCustomItemStack(args[0], 2));
+        }
+
    }
  
    
@@ -322,21 +386,4 @@ public class Vault extends JavaPlugin {
      } 
    }
 
-    public static class UserCacheEntry {
-        private String name;
-        private String uuid;
-        private String expiresOn;
-
-        public String getName() {
-            return name;
-        }
-
-        public String getUuid() {
-            return uuid;
-        }
-
-        public String getExpiresOn() {
-            return expiresOn;
-        }
-    }
  }
