@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -27,8 +28,8 @@ public class Player_Commands implements CommandExecutor, TabCompleter {
 
         if ((cmd.getName().equalsIgnoreCase("bal") || cmd.getName().equalsIgnoreCase("balance")) && player.hasPermission("vault.bal")) {
             double balance;
-            if (Vault.getInstance().usingVEco)
-                balance = Vault.getInstance().getVeco().getBalance(player);
+            if (Vault.getInstance().vaultUnlockedPresent())
+                balance = Vault.getInstance().getVaultUnlocked().getBalance("VEco", player.getUniqueId()).doubleValue();
             else
                 balance = Vault.getInstance().getEcon().getBalance(player);
 
@@ -52,13 +53,13 @@ public class Player_Commands implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            if (Vault.getInstance().usingVEco) {
-                if (!Vault.getInstance().getVeco().has(player, amount)) {
+            if (Vault.getInstance().vaultUnlockedPresent()) {
+                if (!Vault.getInstance().getVaultUnlocked().has("VEco", player.getUniqueId(), BigDecimal.valueOf(amount))) {
                     player.sendMessage(ChatColor.RED + "You do not have enough money to pay that amount!");
                     return true;
                 }
-                Vault.getInstance().getVeco().withdrawPlayer(player, amount);
-                Vault.getInstance().getVeco().depositPlayer(target, amount);
+                Vault.getInstance().getVaultUnlocked().withdraw("VEco", player.getUniqueId(), BigDecimal.valueOf(amount));
+                Vault.getInstance().getVaultUnlocked().deposit("VEco", target.getUniqueId(), BigDecimal.valueOf(amount));
             } else {
                 if (!Vault.getInstance().getEcon().has(player, amount)) {
                     player.sendMessage(ChatColor.RED + "You do not have enough money to pay that amount!");

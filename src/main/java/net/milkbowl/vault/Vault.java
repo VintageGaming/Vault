@@ -42,6 +42,9 @@ public class Vault extends JavaPlugin {
    private Permission perms;
    private Economy econ;
 
+   private net.milkbowl.vault2.economy.Economy vaultUnlockedEconomy;
+   private boolean usingVaultUnlocked = false;
+
    private Economy_Veco veco;
    public boolean usingVEco = true;
 
@@ -174,16 +177,33 @@ public class Vault extends JavaPlugin {
         }
    }
 
+
    public Permission getPerms() {
         return perms;
    }
 
-   public Economy getEcon() {
-     return econ;
+   public boolean vaultUnlockedPresent() {
+        if (usingVaultUnlocked) return true;
+
+        RegisteredServiceProvider<net.milkbowl.vault2.economy.Economy> vaultUnlocked =Bukkit.getServicesManager().getRegistration(net.milkbowl.vault2.economy.Economy.class);
+        if (vaultUnlocked != null) {
+            usingVEco = false;
+            usingVaultUnlocked = true;
+            vaultUnlockedEconomy = vaultUnlocked.getProvider();
+            return true;
+        }
+        return false;
    }
 
-   public Economy_Veco getVeco() {
-     return veco;
+   public net.milkbowl.vault2.economy.Economy getVaultUnlocked() {
+        return vaultUnlockedEconomy;
+   }
+
+   public Economy getEcon() {
+        // Check for other plugins first
+        if (usingVEco)
+            econ = Bukkit.getServicesManager().getRegistration(Economy.class).getProvider();
+        return econ;
    }
 
    public static Vault getInstance() {

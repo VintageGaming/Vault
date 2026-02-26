@@ -237,7 +237,7 @@ public interface Economy {
      * @return true if the economy plugin supports multiple currencies.
      */
     default boolean hasMultiCurrencySupport(){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return false;
     }
 
     /*
@@ -367,7 +367,7 @@ public interface Economy {
      * @return An optional containing the last known name if the account exists, otherwise an empty
      * optional.
      */
-    default Optional<String> getAccountName(@NotNull final UUID accountID){
+    default String getAccountName(@NotNull final UUID accountID){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -416,16 +416,16 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return accountWithdraw(accountID, balance.subtract(amount));
+            return accountWithdraw(plugin, accountID, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return accountDeposit(accountID, amount.subtract(balance));
+            return accountDeposit(plugin, accountID, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -440,16 +440,16 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID, worldName);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return accountWithdraw(accountID, worldName, balance.subtract(amount));
+            return accountWithdraw(plugin, accountID, worldName, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return accountDeposit(accountID, worldName, amount.subtract(balance));
+            return accountDeposit(plugin, accountID, worldName, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -465,16 +465,16 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
-    default EconomyResponse setAccount(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
+    default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID, worldName, currency);
         final int compare = balance.compareTo(amount);
         if(compare > 0) {
-            return accountWithdraw(accountID, worldName, currency, balance.subtract(amount));
+            return accountWithdraw(plugin, accountID, worldName, currency, balance.subtract(amount));
         }
 
         if(compare < 0) {
-            return accountDeposit(accountID, worldName, currency, amount.subtract(balance));
+            return accountDeposit(plugin, accountID, worldName, currency, amount.subtract(balance));
         }
 
         return new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, "");
@@ -491,7 +491,22 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    /**
+     * Withdraw an amount from an account associated with a UUID - DO NOT USE
+     * NEGATIVE AMOUNTS.
+     *
+     * @param accountID   the UUID associated with the account to withdraw from.
+     * @param amount Amount to withdraw.
+     * @return {@link EconomyResponse} which includes the Economy plugin's
+     *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
+     *         Failure, Unsupported.
+     */
+    @NotNull
+    default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -508,7 +523,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -526,7 +541,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountWithdraw(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
+    default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -541,7 +556,22 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    /**
+     * Deposit an amount to an account associated with the given UUID - DO NOT USE
+     * NEGATIVE AMOUNTS.
+     *
+     * @param accountID   the UUID associated with the account to deposit to.
+     * @param amount Amount to deposit.
+     * @return {@link EconomyResponse} which includes the Economy plugin's
+     *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
+     *         Failure, Unsupported.
+     */
+    @NotNull
+    default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -558,7 +588,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -576,7 +606,7 @@ public interface Economy {
      *         Failure, Unsupported.
      */
     @NotNull
-    default EconomyResponse accountDeposit(@NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
+    default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -722,7 +752,7 @@ public interface Economy {
      * @param value        the new permission value to set for this value
      * @return true if the account permission was successfully updated, false otherwise
      */
-    default boolean updateAccountPermission(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
+    default boolean updateAccountPermission(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 

@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -43,8 +44,8 @@ public class Veco_Command implements CommandExecutor, TabCompleter {
 
         switch (args[0].toLowerCase()) {
             case "give":
-                if (Vault.getInstance().usingVEco) {
-                    Vault.getInstance().getVeco().depositPlayer(target, amount);
+                if (Vault.getInstance().vaultUnlockedPresent()) {
+                    Vault.getInstance().getVaultUnlocked().deposit("VEco", target.getUniqueId(), BigDecimal.valueOf(amount));
                 } else {
                     Vault.getInstance().getEcon().depositPlayer(target, amount);
                 }
@@ -53,8 +54,8 @@ public class Veco_Command implements CommandExecutor, TabCompleter {
                 commandSender.sendMessage(ChatColor.GREEN + "Given $" + amount + " to " + target.getName());
                 break;
             case "take":
-                if (Vault.getInstance().usingVEco) {
-                    Vault.getInstance().getVeco().withdrawPlayer(target, amount);
+                if (Vault.getInstance().vaultUnlockedPresent()) {
+                    Vault.getInstance().getVaultUnlocked().withdraw("VEco", target.getUniqueId(), BigDecimal.valueOf(amount));
                 } else {
                     Vault.getInstance().getEcon().withdrawPlayer(target, amount);
                 }
