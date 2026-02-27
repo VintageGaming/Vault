@@ -168,6 +168,14 @@ public interface Economy {
         return getDefaultCurrencyPlural();
     }
 
+    default String getCurrencySingular(String currencyName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getCurrencyPlural(String currencyName) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
     default String[] getCurrencies() {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
