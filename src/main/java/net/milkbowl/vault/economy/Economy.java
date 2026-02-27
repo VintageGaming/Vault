@@ -141,7 +141,7 @@ public interface Economy {
     }
 
     default boolean getDefaultCurrency(String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return getDefaultCurrency();
     }
 
     default String getDefaultCurrencyName() {
@@ -149,7 +149,15 @@ public interface Economy {
     }
 
     default String getDefaultCurrencyName(String worldName) {
+        return getDefaultCurrencyName();
+    }
+
+    default String getDefaultCurrencySingular() {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getDefaultCurrencySingular(String world) {
+        return getDefaultCurrencySingular();
     }
 
     default String getDefaultCurrencyPlural() {
@@ -157,7 +165,7 @@ public interface Economy {
     }
 
     default String getDefaultCurrencyPlural(String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return getDefaultCurrencyPlural();
     }
 
     default String[] getCurrencies() {
@@ -165,7 +173,7 @@ public interface Economy {
     }
 
     default String[] getCurrencies(String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return getCurrencies();
     }
 
     default BigDecimal getAccountBalance(UUID accountId) {
@@ -177,7 +185,7 @@ public interface Economy {
     }
 
     default BigDecimal getAccountBalance(UUID accountId, String currency, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return getAccountBalance(accountId, currency);
     }
 
     default boolean accountHas(UUID accountId, BigDecimal amount) {
@@ -185,7 +193,7 @@ public interface Economy {
     }
 
     default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountHas(accountId, amount);
     }
 
     default boolean accountHas(UUID accountId, BigDecimal amount, String currency) {
@@ -193,7 +201,7 @@ public interface Economy {
     }
 
     default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String currency, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountHas(accountId, amount, currency);
     }
 
     default boolean accountSupportsCurrency(UUID accountId, String currency) {
@@ -201,7 +209,7 @@ public interface Economy {
     }
 
     default boolean accountSupportsCurrency(UUID accountId, String currency, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountSupportsCurrency(accountId, currency);
     }
 
     default boolean renameAccount(UUID accountID, String name, String worldName) {
@@ -298,7 +306,7 @@ public interface Economy {
      */
     @Deprecated
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return createAccount(accountID, name, true);
     }
 
     /**
@@ -329,7 +337,7 @@ public interface Economy {
      */
     @Deprecated
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name, @NotNull final String worldName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return createAccount(accountID, name, worldName, true);
     }
 
     /**
@@ -389,7 +397,7 @@ public interface Economy {
      * @return if the UUID has an account.
      */
     default boolean hasAccount(@NotNull final UUID accountID, @NotNull final String worldName){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return hasAccount(accountID);
     }
 
     /**
