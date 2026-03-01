@@ -36,6 +36,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class Vault extends JavaPlugin { 
    private static Logger log;
@@ -46,7 +47,7 @@ public class Vault extends JavaPlugin {
    private boolean usingVaultUnlocked = false;
 
    private Economy_Veco veco;
-   public boolean usingVEco = true;
+   public boolean usingVEco = false;
 
    private CustomItemRegistry registry;
 
@@ -57,7 +58,8 @@ public class Vault extends JavaPlugin {
    private static Vault plugin;
    
    public void onDisable() {
-       Veco.saveBalances();
+       if (usingVEco)
+           Veco.saveBalances();
        getServer().getServicesManager().unregisterAll(this);
        Bukkit.getScheduler().cancelTasks(this);
    }
@@ -85,19 +87,30 @@ public class Vault extends JavaPlugin {
        getCommand("balance").setExecutor(new Player_Commands());
        getCommand("pay").setTabCompleter(new Player_Commands());
 
+
+       // Let Other Economies Register -- Try to Prevent Race Conditions
+       new BukkitRunnable() {
+           @Override
+           public void run() {
+               if (sm.getRegistration(Economy.class) != null && !vaultUnlockedPresent())
+                   return;
+
+               veco = new Economy_Veco(getInstance());
+               sm.register(Economy.class, veco, getInstance(), ServicePriority.Lowest);
+               econ = veco;
+               usingVEco = true;
+               log.info(String.format("[Economy] Veco loaded as backup economy system."));
+           }
+       }.runTaskLater(this, 1L);
+
      
        log.info(String.format("Enabled Version %s", getDescription().getVersion()));
    }
 
     private void loadEconomy() {
-        veco = new Economy_Veco(this);
-        sm.register(Economy.class, veco, this, ServicePriority.Lowest);
-        econ = veco;
-        log.info(String.format("[Economy] Veco loaded as backup economy system."));
 
         hookEconomy("CMI Economy", Economy_CMI.class, ServicePriority.Normal, "com.Zrips.CMI.Modules.Economy.Economy");
         hookEconomy("Essentials Economy", Economy_Essentials.class, ServicePriority.Low, "com.earth2me.essentials.api.Economy", "com.earth2me.essentials.api.NoLoanPermittedException", "com.earth2me.essentials.api.UserDoesNotExistException");
-
     }
 
     /**

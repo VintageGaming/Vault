@@ -54,8 +54,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean hasAccount(String playerName) {
-        return Veco.offlinePlayerAccountExists(playerName);
+    public boolean hasAccount(String playerUUID) {
+        return Veco.offlinePlayerAccountExists(playerUUID);
     }
 
     @Override
@@ -64,8 +64,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean hasAccount(String playerName, String worldName) {
-        return hasAccount(playerName);
+    public boolean hasAccount(String playerUUID, String worldName) {
+        return hasAccount(playerUUID);
     }
 
     @Override
@@ -74,8 +74,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public double getBalance(String playerName) {
-        return Veco.getPlayerBalance(playerName);
+    public double getBalance(String playerUUID) {
+        return Veco.getPlayerBalance(playerUUID);
     }
 
     @Override
@@ -84,8 +84,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public double getBalance(String playerName, String worldName) {
-        return getBalance(playerName);
+    public double getBalance(String playerUUID, String worldName) {
+        return getBalance(playerUUID);
     }
 
     @Override
@@ -94,8 +94,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean has(String playerName, double amount) {
-        return getBalance(playerName) >= amount;
+    public boolean has(String playerUUID, double amount) {
+        return getBalance(playerUUID) >= amount;
     }
 
     @Override
@@ -104,8 +104,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean has(String playerName, String worldName, double amount) {
-        return has(playerName, amount);
+    public boolean has(String playerUUID, String worldName, double amount) {
+        return has(playerUUID, amount);
     }
 
     @Override
@@ -114,16 +114,16 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String playerName, double amount) {
-        if (!has(playerName, amount)) {
-            return new EconomyResponse(amount, getBalance(playerName), EconomyResponse.ResponseType.FAILURE, "Not enough money to withdraw!");
+    public EconomyResponse withdrawPlayer(String playerUUID, double amount) {
+        if (!has(playerUUID, amount)) {
+            return new EconomyResponse(amount, getBalance(playerUUID), EconomyResponse.ResponseType.FAILURE, "Not enough money to withdraw!");
         }
 
-        UUID uuid = Vault.getUUIDFromName(playerName);
+        UUID uuid = Vault.getUUIDFromName(playerUUID);
         if (uuid == null)
-            return new EconomyResponse(amount, getBalance(playerName), EconomyResponse.ResponseType.FAILURE, "Player not found!");
+            return new EconomyResponse(amount, getBalance(playerUUID), EconomyResponse.ResponseType.FAILURE, "Player not found!");
 
-        double newBalance = getBalance(playerName) - amount;
+        double newBalance = getBalance(playerUUID) - amount;
         Veco.setPlayerBalance(uuid, newBalance);
         return new EconomyResponse(amount, newBalance, EconomyResponse.ResponseType.SUCCESS, "Withdraw Successful");
     }
@@ -134,8 +134,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse withdrawPlayer(String playerName, String worldName, double amount) {
-        return withdrawPlayer(playerName, amount);
+    public EconomyResponse withdrawPlayer(String playerUUID, String worldName, double amount) {
+        return withdrawPlayer(playerUUID, amount);
     }
 
     @Override
@@ -144,12 +144,12 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse depositPlayer(String playerName, double amount) {
-        UUID uuid = Vault.getUUIDFromName(playerName);
+    public EconomyResponse depositPlayer(String playerUUID, double amount) {
+        UUID uuid = Vault.getUUIDFromName(playerUUID);
         if (uuid == null)
-            return new EconomyResponse(amount, getBalance(playerName), EconomyResponse.ResponseType.FAILURE, "Player not found!");
+            return new EconomyResponse(amount, getBalance(playerUUID), EconomyResponse.ResponseType.FAILURE, "Player not found!");
 
-        double newBalance = getBalance(playerName) + amount;
+        double newBalance = getBalance(playerUUID) + amount;
         Veco.setPlayerBalance(uuid, newBalance);
         return new EconomyResponse(amount, newBalance, EconomyResponse.ResponseType.SUCCESS, "Deposit Successful");
     }
@@ -160,8 +160,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse depositPlayer(String playerName, String worldName, double amount) {
-        return depositPlayer(playerName, amount);
+    public EconomyResponse depositPlayer(String playerUUID, String worldName, double amount) {
+        return depositPlayer(playerUUID, amount);
     }
 
     @Override
@@ -170,7 +170,7 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse createBank(String name, String playerName) {
+    public EconomyResponse createBank(String name, String playerUUID) {
         return NO_BANK_SUPPORT;
     }
 
@@ -205,7 +205,7 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse isBankOwner(String name, String playerName) {
+    public EconomyResponse isBankOwner(String name, String playerUUID) {
         return NO_BANK_SUPPORT;
     }
 
@@ -215,7 +215,7 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public EconomyResponse isBankMember(String name, String playerName) {
+    public EconomyResponse isBankMember(String name, String playerUUID) {
         return NO_BANK_SUPPORT;
     }
 
@@ -230,9 +230,9 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean createPlayerAccount(String playerName) {
-        if (hasAccount(playerName)) return false;
-        UUID uuid = Vault.getUUIDFromName(playerName);
+    public boolean createPlayerAccount(String playerUUID) {
+        if (hasAccount(playerUUID)) return false;
+        UUID uuid = Vault.getUUIDFromName(playerUUID);
         if (uuid == null) return false;
         Veco.setPlayerBalance(uuid, 0.0);
         return true;
@@ -246,8 +246,8 @@ public class Economy_Veco implements Economy {
     }
 
     @Override
-    public boolean createPlayerAccount(String playerName, String worldName) {
-        return createPlayerAccount(playerName);
+    public boolean createPlayerAccount(String playerUUID, String worldName) {
+        return createPlayerAccount(playerUUID);
     }
 
     @Override

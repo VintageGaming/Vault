@@ -20,59 +20,63 @@ public interface Economy {
   String currencyNamePlural();
   
   String currencyNameSingular();
-  
+
+  //------------------------------------------------------------------------------------------------------
+  //-----------------------------------NOTICE: accountId OR Player UUID-----------------------------------
+  //------------------------------------------------------------------------------------------------------
+
   @Deprecated
-  boolean hasAccount(String playerName);
+  boolean hasAccount(String accountId);
   
   boolean hasAccount(OfflinePlayer player);
   
   @Deprecated
-  boolean hasAccount(String playerName, String worldName);
+  boolean hasAccount(String accountId, String worldName);
   
   boolean hasAccount(OfflinePlayer player, String worldName);
   
   @Deprecated
-  double getBalance(String playerName);
+  double getBalance(String accountId);
   
   double getBalance(OfflinePlayer player);
   
   @Deprecated
-  double getBalance(String playerName, String worldName);
+  double getBalance(String accountId, String worldName);
   
   double getBalance(OfflinePlayer player, String worldName);
   
   @Deprecated
-  boolean has(String playerName, double amount);
+  boolean has(String accountId, double amount);
   
   boolean has(OfflinePlayer player, double amount);
   
   @Deprecated
-  boolean has(String playerName, String worldName, double amount);
+  boolean has(String accountId, String worldName, double amount);
   
   boolean has(OfflinePlayer player, String worldName, double amount);
   
   @Deprecated
-  EconomyResponse withdrawPlayer(String playerName, double amount);
+  EconomyResponse withdrawPlayer(String accountId, double amount);
   
   EconomyResponse withdrawPlayer(OfflinePlayer player, double amount);
   
   @Deprecated
-  EconomyResponse withdrawPlayer(String playerName, String worldName, double amount);
+  EconomyResponse withdrawPlayer(String accountId, String worldName, double amount);
   
   EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount);
   
   @Deprecated
-  EconomyResponse depositPlayer(String playerName, double amount);
+  EconomyResponse depositPlayer(String accountId, double amount);
   
   EconomyResponse depositPlayer(OfflinePlayer player, double amount);
   
   @Deprecated
-  EconomyResponse depositPlayer(String playerName, String worldName, double amount);
+  EconomyResponse depositPlayer(String accountId, String worldName, double amount);
   
   EconomyResponse depositPlayer(OfflinePlayer player, String worldName, double amount);
   
   @Deprecated
-  EconomyResponse createBank(String name, String playerName);
+  EconomyResponse createBank(String name, String playerUUID);
   
   EconomyResponse createBank(String name, OfflinePlayer player);
   
@@ -87,24 +91,24 @@ public interface Economy {
   EconomyResponse bankDeposit(String name, double amount);
   
   @Deprecated
-  EconomyResponse isBankOwner(String name, String playerName);
+  EconomyResponse isBankOwner(String name, String playerUUID);
   
   EconomyResponse isBankOwner(String name, OfflinePlayer player);
   
   @Deprecated
-  EconomyResponse isBankMember(String name, String playerName);
+  EconomyResponse isBankMember(String name, String playerUUID);
   
   EconomyResponse isBankMember(String name, OfflinePlayer player);
   
   List<String> getBanks();
   
   @Deprecated
-  boolean createPlayerAccount(String playerName);
+  boolean createPlayerAccount(String accountId);
   
   boolean createPlayerAccount(OfflinePlayer player);
   
   @Deprecated
-  boolean createPlayerAccount(String playerName, String worldName);
+  boolean createPlayerAccount(String accountId, String worldName);
   
   boolean createPlayerAccount(OfflinePlayer player, String worldName);
 
@@ -116,11 +120,11 @@ public interface Economy {
 
     // Return how many Decimal Points the plugin supports
     default int numberOfDecimals() {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return fractionalDigits();
     }
 
     default int numberOfDecimals(String currency) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return numberOfDecimals();
     }
 
     default boolean createCurrency(String currency, String singularName, String pluralName) {
@@ -128,7 +132,7 @@ public interface Economy {
     }
 
     default boolean createCurrency(String currency, String singularName, String pluralName, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return createCurrency(currency, singularName, pluralName);
     }
 
     // Returns Whether the currency exists and or supported, with an option to specify a world
@@ -144,10 +148,12 @@ public interface Economy {
         return getDefaultCurrency();
     }
 
+    // Added Method in VintageVault 1.8.8
     default String getDefaultCurrencyName() {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
+    // Added Method in VintageVault 1.8.8
     default String getDefaultCurrencyName(String worldName) {
         return getDefaultCurrencyName();
     }
@@ -160,10 +166,12 @@ public interface Economy {
         return getDefaultCurrencySingular();
     }
 
+    // Added Method in VintageVault 1.8.8
     default String getDefaultCurrencyPlural() {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
+    // Added Method in VintageVault 1.8.8
     default String getDefaultCurrencyPlural(String worldName) {
         return getDefaultCurrencyPlural();
     }
@@ -172,8 +180,16 @@ public interface Economy {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
+    default String getCurrencySingular(String currencyName, String world) {
+        return getCurrencySingular(currencyName);
+    }
+
     default String getCurrencyPlural(String currencyName) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getCurrencyPlural(String currencyName, String world) {
+        return getCurrencyPlural(currencyName);
     }
 
     default String[] getCurrencies() {
@@ -184,12 +200,51 @@ public interface Economy {
         return getCurrencies();
     }
 
-    default BigDecimal getAccountBalance(UUID accountId) {
+    // Added Method in VintageVault 1.8.8
+    default BigDecimal getCurrencyMax(String currency) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
-    default BigDecimal getAccountBalance(UUID accountId, String currency) {
+    // Added Method in VintageVault 1.8.8
+    default BigDecimal getCurrencyMax(String currency, String world) {
+        return getCurrencyMax(currency);
+    }
+
+    // Added Method in VintageVault 1.8.8
+    default BigDecimal getCurrencyMin(String currency) {
+        return BigDecimal.ZERO;
+    }
+
+    // Added Method in VintageVault 1.8.8
+    default BigDecimal getCurrencyMin(String currency, String world) {
+        return getCurrencyMin(currency);
+    }
+
+    // Added Method in VintageVault 1.8.8
+    default boolean canConvertCurrency(String originalCurrency, String newCurrency) {
+        return false;
+    }
+
+    // Added Method in VintageVault 1.8.8
+    default boolean canConvertCurrency(String originalCurrency, String newCurrency, String world) {
+        return canConvertCurrency(originalCurrency, newCurrency);
+    }
+
+    // Added Method in VintageVault 1.8.8
+    default BigDecimal convertCurrency(String initialCurrency, BigDecimal amount, String newCurrency) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default BigDecimal convertCurrency(String initialCurrency, BigDecimal amount, String newCurrency, String world) {
+        return convertCurrency(initialCurrency, amount, newCurrency);
+    }
+
+    default BigDecimal getAccountBalance(UUID accountId) {
+        return BigDecimal.valueOf(getBalance(accountId.toString()));
+    }
+
+    default BigDecimal getAccountBalance(UUID accountId, String currency) {
+        return getAccountBalance(accountId); // Plugin Doesn't Have Multi-Currency Support
     }
 
     default BigDecimal getAccountBalance(UUID accountId, String currency, String worldName) {
@@ -197,7 +252,7 @@ public interface Economy {
     }
 
     default boolean accountHas(UUID accountId, BigDecimal amount) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return has(accountId.toString(), amount.doubleValue());
     }
 
     default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String worldName) {
@@ -205,11 +260,11 @@ public interface Economy {
     }
 
     default boolean accountHas(UUID accountId, BigDecimal amount, String currency) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountHas(accountId, amount); // Plugin Doesn't Have Multi-Currency Support
     }
 
     default boolean accountHasInWorld(UUID accountId, BigDecimal amount, String currency, String worldName) {
-        return accountHas(accountId, amount, currency);
+        return accountHasInWorld(accountId, amount, worldName); // Plugin Doesn't Have Multi-Currency Support
     }
 
     default boolean accountSupportsCurrency(UUID accountId, String currency) {
@@ -229,7 +284,7 @@ public interface Economy {
     }
 
     default boolean deleteAccount(UUID accountId, String worldName) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return deleteAccount(accountId);
     }
 
 
@@ -244,7 +299,7 @@ public interface Economy {
      * @return true if the economy plugin supports shared accounts.
      */
     default boolean hasSharedAccountSupport(){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return false;
     }
 
     /**
@@ -270,7 +325,7 @@ public interface Economy {
      */
     @NotNull
     default String format(@NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return format(amount.doubleValue()); // Backwards Compatibility Support
     }
 
     /**
@@ -284,7 +339,7 @@ public interface Economy {
      */
     @NotNull
     default String format(@NotNull final BigDecimal amount, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return format(amount); // Plugin Doesn't Have Multi-Currency Support
     }
 
     /**
@@ -327,7 +382,7 @@ public interface Economy {
      * @return true if the account was successfully created, false otherwise.
      */
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name, final boolean player){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return createPlayerAccount(accountID.toString()); // Backwards Compatibility
     }
 
     /**
@@ -359,7 +414,7 @@ public interface Economy {
      * @return True if the account was successfully created, false otherwise.
      */
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name, @NotNull final String worldName, final boolean player){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return createAccount(accountID, name, player);
     }
 
     /**
@@ -394,7 +449,7 @@ public interface Economy {
      * @return true if the UUID has an account.
      */
     default boolean hasAccount(@NotNull final UUID accountID){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return hasAccount(accountID.toString()); // Backwards Compatibility
     }
 
     /**
@@ -508,7 +563,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return withdrawPlayer(accountID.toString(), amount.doubleValue()); // Backwards Compatibility
     }
 
     /**
@@ -523,7 +578,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountWithdraw(plugin, accountID, amount); // Plugin Doesn't Have Multi-Currency Support
     }
 
     /**
@@ -540,7 +595,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountWithdraw(plugin, accountID, amount);
     }
 
     /**
@@ -558,7 +613,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountWithdraw(plugin, accountID, worldName, amount); // Plugin Doesn't Have Multi-Currency Support
     }
 
     /**
@@ -573,7 +628,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return depositPlayer(accountID.toString(), amount.doubleValue()); // Backwards Compatibility
     }
 
     /**
@@ -588,7 +643,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountDeposit(plugin, accountID, amount); // Plugin Doesn't Have Multi-Currency Support
     }
 
     /**
@@ -605,7 +660,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountDeposit(plugin, accountID, amount);
     }
 
     /**
@@ -623,7 +678,7 @@ public interface Economy {
      */
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        return accountDeposit(plugin, accountID, currency, amount);
     }
 
     /*
