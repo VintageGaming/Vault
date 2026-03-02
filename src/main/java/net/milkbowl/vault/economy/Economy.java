@@ -386,40 +386,112 @@ public interface Economy {
   }
 
   @Deprecated
-  EconomyResponse createBank(String name, String playerUUID);
+  default EconomyResponse createBank(String name, String playerUUID) {
+      try {
+          return createBankAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse createBank(String name, OfflinePlayer player);
+  default EconomyResponse createBank(String name, OfflinePlayer player) {
+      try {
+          return createBankAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse deleteBank(String name);
+  default EconomyResponse deleteBank(String name) {
+      try {
+          return deleteBankAsync(name).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse bankBalance(String name);
+  default EconomyResponse bankBalance(String name) {
+      try {
+          return bankBalanceAsync(name).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse bankHas(String name, double amount);
+  default EconomyResponse bankHas(String name, double amount) {
+      try {
+          return bankHasAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse bankWithdraw(String name, double amount);
+  default EconomyResponse bankWithdraw(String name, double amount) {
+      try {
+          return bankWithdrawAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse bankDeposit(String name, double amount);
+  default EconomyResponse bankDeposit(String name, double amount) {
+      try {
+          return bankDepositAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
   
   @Deprecated
-  EconomyResponse isBankOwner(String name, String playerUUID);
+  default EconomyResponse isBankOwner(String name, String playerUUID) {
+      try {
+          return isBankOwnerAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse isBankOwner(String name, OfflinePlayer player);
+  default EconomyResponse isBankOwner(String name, OfflinePlayer player) {
+      try {
+          return isBankOwnerAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
   
   @Deprecated
-  EconomyResponse isBankMember(String name, String playerUUID);
+  default EconomyResponse isBankMember(String name, String playerUUID) {
+      try {
+          return isBankMemberAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  EconomyResponse isBankMember(String name, OfflinePlayer player);
+  default EconomyResponse isBankMember(String name, OfflinePlayer player) {
+      try {
+          return isBankMemberAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
 
   @Deprecated
-  List<String> getBanks();
+  default List<String> getBanks() {
+      try {
+          return getBanksAsync().get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new ArrayList<>();
+      }
+  }
 
   //------------------------------------------ createPlayerAccount() Methods --------------------------------------------
 
