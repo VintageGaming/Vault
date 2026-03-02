@@ -2,6 +2,8 @@ package net.milkbowl.vault.economy;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
@@ -25,92 +27,453 @@ public interface Economy {
   //-----------------------------------NOTICE: accountId OR Player UUID-----------------------------------
   //------------------------------------------------------------------------------------------------------
 
+  default CompletableFuture<Boolean> hasAccountAsync(UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> hasAccount(uuid.toString()));
+  }
+
+  default CompletableFuture<Boolean> hasAccountAsync(OfflinePlayer offlinePlayer) {
+      return hasAccountAsync(offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<Boolean> hasAccountAsync(UUID uuid, String worldName) {
+      return CompletableFuture.supplyAsync(() -> hasAccount(uuid.toString(), worldName));
+  }
+
+  default CompletableFuture<Boolean> hasAccountAsync(OfflinePlayer offlinePlayer, String worldName) {
+      return hasAccountAsync(offlinePlayer.getUniqueId(), worldName);
+  }
+
   @Deprecated
-  boolean hasAccount(String accountId);
-  
-  boolean hasAccount(OfflinePlayer player);
-  
+  default boolean hasAccount(String accountId) {
+      try {
+          return hasAccountAsync(UUID.fromString(accountId)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
   @Deprecated
-  boolean hasAccount(String accountId, String worldName);
-  
-  boolean hasAccount(OfflinePlayer player, String worldName);
-  
-  @Deprecated
-  double getBalance(String accountId);
-  
-  double getBalance(OfflinePlayer player);
-  
-  @Deprecated
-  double getBalance(String accountId, String worldName);
-  
-  double getBalance(OfflinePlayer player, String worldName);
-  
-  @Deprecated
-  boolean has(String accountId, double amount);
-  
-  boolean has(OfflinePlayer player, double amount);
-  
-  @Deprecated
-  boolean has(String accountId, String worldName, double amount);
-  
-  boolean has(OfflinePlayer player, String worldName, double amount);
-  
-  @Deprecated
-  EconomyResponse withdrawPlayer(String accountId, double amount);
-  
-  EconomyResponse withdrawPlayer(OfflinePlayer player, double amount);
-  
-  @Deprecated
-  EconomyResponse withdrawPlayer(String accountId, String worldName, double amount);
-  
-  EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount);
+  default boolean hasAccount(OfflinePlayer player) {
+      try {
+          return hasAccountAsync(player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
   
   @Deprecated
-  EconomyResponse depositPlayer(String accountId, double amount);
-  
-  EconomyResponse depositPlayer(OfflinePlayer player, double amount);
+  default boolean hasAccount(String accountId, String worldName) {
+      try {
+          return hasAccountAsync(UUID.fromString(accountId), worldName).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
+  @Deprecated
+  default boolean hasAccount(OfflinePlayer player, String worldName) {
+      try {
+          return hasAccountAsync(player.getUniqueId(), worldName).get(50, TimeUnit.MILLISECONDS);
+      }
+      catch (Exception e) {
+          return false;
+      }
+  }
+
+  //-----------------------------------------Get Balance Methods----------------------------------------
+
+  default CompletableFuture<BigDecimal> getBalanceAsync(UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> BigDecimal.valueOf(getBalance(uuid.toString())));
+  }
+
+  default CompletableFuture<BigDecimal> getBalanceAsync(OfflinePlayer offlinePlayer) {
+      return getBalanceAsync(offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<BigDecimal> getBalanceAsync(UUID uuid, String world) {
+      return CompletableFuture.supplyAsync(() -> BigDecimal.valueOf(getBalance(uuid.toString(), world)));
+  }
+
+  default CompletableFuture<BigDecimal> getBalanceAsync(OfflinePlayer offlinePlayer, String world) {
+      return getBalanceAsync(offlinePlayer.getUniqueId(), world);
+  }
+
+  default  CompletableFuture<BigDecimal> getBalanceAsync(UUID uuid, String world, String currency) {
+      throw new UnsupportedOperationException(getName() + " does not support this method.");
+  }
+
+  default CompletableFuture<BigDecimal> getBalanceAsync(OfflinePlayer offlinePlayer, String world, String currency) {
+      return getBalanceAsync(offlinePlayer.getUniqueId(), world, currency);
+  }
+
+  @Deprecated
+  default double getBalance(String accountId) {
+      try {
+          return getBalanceAsync(UUID.fromString(accountId)).get(50, TimeUnit.MILLISECONDS).doubleValue();
+      }
+      catch (Exception e) {
+          return 0.0;
+      }
+  }
+
+  @Deprecated
+  default double getBalance(OfflinePlayer player) {
+      try {
+          return getBalanceAsync(player.getUniqueId()).get(50, TimeUnit.MILLISECONDS).doubleValue();
+      }
+      catch (Exception e) {
+          return 0.0;
+      }
+  }
   
   @Deprecated
-  EconomyResponse depositPlayer(String accountId, String worldName, double amount);
+  default double getBalance(String accountId, String worldName) {
+      try {
+          return getBalanceAsync(UUID.fromString(accountId), worldName).get(50, TimeUnit.MILLISECONDS).doubleValue();
+      }
+      catch (Exception e) {
+          return 0.0;
+      }
+  }
+
+  @Deprecated
+  default double getBalance(OfflinePlayer player, String worldName) {
+      try {
+          return getBalanceAsync(player.getUniqueId(), worldName).get(50, TimeUnit.MILLISECONDS).doubleValue();
+      } catch (Exception e) {
+          return 0.0;
+      }
+  }
+
+  //----------------------------------------------has() Methods----------------------------------------------
+
+  default CompletableFuture<Boolean> has(UUID uuid, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> has(uuid.toString(), amount.doubleValue()));
+  }
+
+  default CompletableFuture<Boolean> has(OfflinePlayer offlinePlayer, BigDecimal amount) {
+      return has(offlinePlayer.getUniqueId(), amount);
+  }
+
+  default CompletableFuture<Boolean> has(UUID uuid, String worldName, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> has(uuid.toString(), worldName, amount.doubleValue()));
+  }
+
+  default CompletableFuture<Boolean> has(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
+      return has(offlinePlayer.getUniqueId(), worldName, amount);
+  }
+
+  default CompletableFuture<Boolean> has(UUID uuid, String worldName, BigDecimal amount, String currency) {
+      throw new UnsupportedOperationException(getName() + " does not support this method.");
+  }
+
+  default CompletableFuture<Boolean> has(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount, String currency) {
+      return has(offlinePlayer.getUniqueId(), worldName, amount, currency);
+  }
+
+  @Deprecated
+  default boolean has(String accountId, double amount) {
+      try {
+          return has(UUID.fromString(accountId), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
+  @Deprecated
+  default boolean has(OfflinePlayer player, double amount) {
+      try {
+          return has(player.getUniqueId(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
   
-  EconomyResponse depositPlayer(OfflinePlayer player, String worldName, double amount);
+  @Deprecated
+  default boolean has(String accountId, String worldName, double amount) {
+      try {
+          return has(UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
+  @Deprecated
+  default boolean has(OfflinePlayer player, String worldName, double amount) {
+      try {
+          return has(player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
+  //--------------------------------- withdrawAccount() and withdrawPlayer() Methods --------------------------
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(UUID uuid, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> withdrawPlayer(uuid.toString(), amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(OfflinePlayer offlinePlayer, BigDecimal amount) {
+      return withdrawAccount(offlinePlayer.getUniqueId(), amount);
+  }
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(UUID uuid, String worldName, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> withdrawPlayer(uuid.toString(), worldName, amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
+      return withdrawAccount(offlinePlayer.getUniqueId(), worldName, amount);
+  }
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(UUID uuid, String worldName, BigDecimal amount, String currency) {
+      throw new UnsupportedOperationException(getName() + " does not support this method.");
+  }
+
+  default CompletableFuture<EconomyResponse> withdrawAccount(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount, String currency) {
+      return withdrawAccount(offlinePlayer.getUniqueId(), worldName, amount, currency);
+  }
+
+  @Deprecated
+  default EconomyResponse withdrawPlayer(String accountId, double amount) {
+      try {
+          return withdrawAccount(UUID.fromString(accountId), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      }
+      catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  @Deprecated
+  default EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
+      try {
+          return withdrawAccount(player.getUniqueId(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      }
+      catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
   
+  @Deprecated
+  default EconomyResponse withdrawPlayer(String accountId, String worldName, double amount) {
+      try {
+          return withdrawAccount(UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      }
+      catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  @Deprecated
+  default EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount) {
+      try {
+          return withdrawAccount(player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      }
+      catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  //--------------------------------------depositPlayer() & depositAccount() Methods--------------------------------------
+
+  default CompletableFuture<EconomyResponse> depositAccount(UUID uuid, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> depositPlayer(uuid.toString(), amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> depositAccount(OfflinePlayer offlinePlayer, BigDecimal amount) {
+      return depositAccount(offlinePlayer.getUniqueId(), amount);
+  }
+
+  default CompletableFuture<EconomyResponse> depositAccount(UUID uuid, String worldName, BigDecimal amout) {
+      return CompletableFuture.supplyAsync(() -> depositPlayer(uuid.toString(), worldName, amout.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> depositAccount(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
+      return depositAccount(offlinePlayer.getUniqueId(), worldName, amount);
+  }
+
+  default CompletableFuture<EconomyResponse> depositAccount(UUID uuid, String worldName, BigDecimal amount, String currency) {
+      throw new UnsupportedOperationException(getName() + " does not support this method.");
+  }
+
+  default CompletableFuture<EconomyResponse> depositAccount(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount, String currency) {
+      return depositAccount(offlinePlayer.getUniqueId(), worldName, amount, currency);
+  }
+
+  @Deprecated
+  default EconomyResponse depositPlayer(String accountId, double amount) {
+      try {
+          return depositAccount(UUID.fromString(accountId), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  @Deprecated
+  default EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
+      try {
+          return depositAccount(player.getUniqueId(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+  
+  @Deprecated
+  default EconomyResponse depositPlayer(String accountId, String worldName, double amount) {
+      try {
+          return depositAccount(UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  @Deprecated
+  default EconomyResponse depositPlayer(OfflinePlayer player, String worldName, double amount) {
+      try {
+          return depositAccount(player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+      }
+  }
+
+  //------------------------------------------------- Bank Methods (Eww) --------------------------------------------------------
+
+  default CompletableFuture<EconomyResponse> createBankAsync(String name, UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> createBank(name, uuid.toString()));
+  }
+
+  default CompletableFuture<EconomyResponse> createBankAsync(String name, OfflinePlayer offlinePlayer) {
+      return createBankAsync(name, offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<EconomyResponse> deleteBankAsync(String name) {
+      return CompletableFuture.supplyAsync(() -> deleteBank(name));
+  }
+
+  default CompletableFuture<EconomyResponse> bankBalanceAsync(String name) {
+      return CompletableFuture.supplyAsync(() -> bankBalance(name));
+  }
+
+  default CompletableFuture<EconomyResponse> bankHasAsync(String name, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> bankHas(name, amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> bankWithdrawAsync(String name, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> bankWithdraw(name, amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> bankDepositAsync(String name, BigDecimal amount) {
+      return CompletableFuture.supplyAsync(() -> bankDeposit(name, amount.doubleValue()));
+  }
+
+  default CompletableFuture<EconomyResponse> isBankOwnerAsync(String name, UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> isBankOwner(name, uuid.toString()));
+  }
+
+  default CompletableFuture<EconomyResponse> isBankOwnerAsync(String name, OfflinePlayer offlinePlayer) {
+      return isBankOwnerAsync(name, offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<EconomyResponse> isBankMemberAsync(String name, UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> isBankMember(name, uuid.toString()));
+  }
+
+  default CompletableFuture<EconomyResponse> isBankMemberAsync(String name, OfflinePlayer offlinePlayer) {
+      return isBankMemberAsync(name, offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<List<String>> getBanksAsync() {
+      return CompletableFuture.supplyAsync(this::getBanks);
+  }
+
   @Deprecated
   EconomyResponse createBank(String name, String playerUUID);
-  
+
+  @Deprecated
   EconomyResponse createBank(String name, OfflinePlayer player);
-  
+
+  @Deprecated
   EconomyResponse deleteBank(String name);
-  
+
+  @Deprecated
   EconomyResponse bankBalance(String name);
-  
+
+  @Deprecated
   EconomyResponse bankHas(String name, double amount);
-  
+
+  @Deprecated
   EconomyResponse bankWithdraw(String name, double amount);
-  
+
+  @Deprecated
   EconomyResponse bankDeposit(String name, double amount);
   
   @Deprecated
   EconomyResponse isBankOwner(String name, String playerUUID);
-  
+
+  @Deprecated
   EconomyResponse isBankOwner(String name, OfflinePlayer player);
   
   @Deprecated
   EconomyResponse isBankMember(String name, String playerUUID);
-  
+
+  @Deprecated
   EconomyResponse isBankMember(String name, OfflinePlayer player);
-  
+
+  @Deprecated
   List<String> getBanks();
+
+  //------------------------------------------ createPlayerAccount() Methods --------------------------------------------
+
+  default CompletableFuture<Boolean> createPlayerAccountAsync(UUID uuid) {
+      return CompletableFuture.supplyAsync(() -> createPlayerAccount(uuid.toString()));
+  }
+
+  default CompletableFuture<Boolean> createPlayerAccountAsync(OfflinePlayer offlinePlayer) {
+      return createPlayerAccountAsync(offlinePlayer.getUniqueId());
+  }
+
+  default CompletableFuture<Boolean> createPlayerAccountAsync(UUID uuid, String worldName) {
+        return CompletableFuture.supplyAsync(() -> createPlayerAccount(uuid.toString(), worldName));
+  }
+
+  default CompletableFuture<Boolean> createPlayerAccountAsync(OfflinePlayer offlinePlayer, String worldName) {
+      return createPlayerAccountAsync(offlinePlayer.getUniqueId(), worldName);
+  }
+
+  @Deprecated
+  default boolean createPlayerAccount(String accountId) {
+      try {
+          return createPlayerAccountAsync(UUID.fromString(accountId)).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
+  @Deprecated
+  default boolean createPlayerAccount(OfflinePlayer player) {
+      try {
+          return createPlayerAccountAsync(player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
   
   @Deprecated
-  boolean createPlayerAccount(String accountId);
-  
-  boolean createPlayerAccount(OfflinePlayer player);
-  
+  default boolean createPlayerAccount(String accountId, String worldName) {
+      try {
+          return createPlayerAccountAsync(UUID.fromString(accountId), worldName).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
+
   @Deprecated
-  boolean createPlayerAccount(String accountId, String worldName);
-  
-  boolean createPlayerAccount(OfflinePlayer player, String worldName);
+  default boolean createPlayerAccount(OfflinePlayer player, String worldName) {
+      try {
+          return createPlayerAccountAsync(player.getUniqueId(), worldName).get(50, TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+          return false;
+      }
+  }
 
   // --------------------------------------------------------------------------------------------------------
   // --------------------------------VintageVault Specific Methods-------------------------------------------
@@ -127,11 +490,11 @@ public interface Economy {
         return numberOfDecimals();
     }
 
-    default boolean createCurrency(String currency, String singularName, String pluralName) {
+    default CompletableFuture<Boolean> createCurrency(String currency, String singularName, String pluralName) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
-    default boolean createCurrency(String currency, String singularName, String pluralName, String worldName) {
+    default CompletableFuture<Boolean> createCurrency(String currency, String singularName, String pluralName, String worldName) {
         return createCurrency(currency, singularName, pluralName);
     }
 
@@ -381,6 +744,7 @@ public interface Economy {
      *
      * @return true if the account was successfully created, false otherwise.
      */
+    @Deprecated
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name, final boolean player){
         return createPlayerAccount(accountID.toString()); // Backwards Compatibility
     }
@@ -413,6 +777,7 @@ public interface Economy {
      *
      * @return True if the account was successfully created, false otherwise.
      */
+    @Deprecated
     default boolean createAccount(@NotNull final UUID accountID, @NotNull final String name, @NotNull final String worldName, final boolean player){
         return createAccount(accountID, name, player);
     }
@@ -425,6 +790,7 @@ public interface Economy {
      * @return a {@link Map} composed of the accounts keyed by their UUID, along
      *         with their associated last-known-name.
      */
+    @Deprecated
     @NotNull
     default Map<UUID, String> getUUIDNameMap(){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
@@ -438,6 +804,7 @@ public interface Economy {
      * @return An optional containing the last known name if the account exists, otherwise an empty
      * optional.
      */
+    @Deprecated
     default String getAccountName(@NotNull final UUID accountID){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
@@ -448,6 +815,7 @@ public interface Economy {
      * @param accountID UUID to check for an existing account.
      * @return true if the UUID has an account.
      */
+    @Deprecated
     default boolean hasAccount(@NotNull final UUID accountID){
         return hasAccount(accountID.toString()); // Backwards Compatibility
     }
@@ -459,6 +827,7 @@ public interface Economy {
      * @param worldName world-specific account.
      * @return if the UUID has an account.
      */
+    @Deprecated
     default boolean hasAccount(@NotNull final UUID accountID, @NotNull final String worldName){
         return hasAccount(accountID);
     }
@@ -471,6 +840,7 @@ public interface Economy {
      * @param name String name that will be associated with the UUID in the map.
      * @return true if the name change is successful.
      */
+    @Deprecated
     default boolean renameAccount(@NotNull final UUID accountID, @NotNull final String name){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
@@ -487,6 +857,7 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
+    @Deprecated
     default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID);
@@ -504,6 +875,29 @@ public interface Economy {
 
     /**
      *
+     * Sets the amount of monies for a player.
+     *
+     * @param accountID the unique identifier of the player's account
+     * @param amount the amount of currency to set for the player in the specified world
+     * @return an EconomyResponse object indicating the result of the operation
+     */
+    default CompletableFuture<EconomyResponse> setAccountAsync(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount) {
+        return getBalanceAsync(accountID).thenCompose(balance -> {
+            final int compare = balance.compareTo(amount);
+            if(compare > 0) {
+                return withdrawAccount(accountID, balance.subtract(amount));
+            }
+
+            if(compare < 0) {
+                return depositAccount(accountID, amount.subtract(balance));
+            }
+
+            return CompletableFuture.completedFuture(new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, ""));
+        });
+    }
+
+    /**
+     *
      * Sets the amount of monies for a player in a specific world.
      *
      * @param accountID the unique identifier of the player's account
@@ -511,6 +905,7 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
+    @Deprecated
     default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID, worldName);
@@ -528,6 +923,30 @@ public interface Economy {
 
     /**
      *
+     * Sets the amount of monies for a player in a specific world.
+     *
+     * @param accountID the unique identifier of the player's account
+     * @param worldName the name of the world where the currency amount is being set
+     * @param amount the amount of currency to set for the player in the specified world
+     * @return an EconomyResponse object indicating the result of the operation
+     */
+    default CompletableFuture<EconomyResponse> setAccountAsync(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
+        return getBalanceAsync(accountID, worldName).thenCompose(balance -> {
+            final int compare = balance.compareTo(amount);
+            if(compare > 0) {
+                return withdrawAccount(accountID, worldName, balance.subtract(amount));
+            }
+
+            if(compare < 0) {
+                return depositAccount(accountID, worldName, amount.subtract(balance));
+            }
+
+            return CompletableFuture.completedFuture(new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, ""));
+        });
+    }
+
+    /**
+     *
      * Sets the amount of specified currency for a player in a specific world.
      *
      * @param accountID the unique identifier of the player's account
@@ -536,6 +955,7 @@ public interface Economy {
      * @param amount the amount of currency to set for the player in the specified world
      * @return an EconomyResponse object indicating the result of the operation
      */
+    @Deprecated
     default EconomyResponse setAccount(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
 
         final BigDecimal balance = getAccountBalance(accountID, worldName, currency);
@@ -552,6 +972,31 @@ public interface Economy {
     }
 
     /**
+     *
+     * Sets the amount of specified currency for a player in a specific world.
+     *
+     * @param accountID the unique identifier of the player's account
+     * @param worldName the name of the world where the currency amount is being set
+     * @param currency the name of the currency being set
+     * @param amount the amount of currency to set for the player in the specified world
+     * @return an EconomyResponse object indicating the result of the operation
+     */
+    default CompletableFuture<EconomyResponse> setAccountAsync(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount) {
+        return getBalanceAsync(accountID, worldName, currency).thenCompose(balance -> {
+            final int compare = balance.compareTo(amount);
+            if(compare > 0) {
+                return withdrawAccount(accountID, worldName, balance.subtract(amount), currency);
+            }
+
+            if(compare < 0) {
+                return depositAccount(accountID, worldName, amount.subtract(balance), currency);
+            }
+
+            return CompletableFuture.completedFuture(new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, ""));
+        });
+    }
+
+    /**
      * Withdraw an amount from an account associated with a UUID - DO NOT USE
      * NEGATIVE AMOUNTS.
      *
@@ -561,6 +1006,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
         return withdrawPlayer(accountID.toString(), amount.doubleValue()); // Backwards Compatibility
@@ -576,6 +1022,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
         return accountWithdraw(plugin, accountID, amount); // Plugin Doesn't Have Multi-Currency Support
@@ -593,6 +1040,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         return accountWithdraw(plugin, accountID, amount);
@@ -611,6 +1059,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountWithdraw(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         return accountWithdraw(plugin, accountID, worldName, amount); // Plugin Doesn't Have Multi-Currency Support
@@ -626,6 +1075,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount){
         return depositPlayer(accountID.toString(), amount.doubleValue()); // Backwards Compatibility
@@ -641,6 +1091,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final BigDecimal amount, @NotNull final String currency){
         return accountDeposit(plugin, accountID, amount); // Plugin Doesn't Have Multi-Currency Support
@@ -658,6 +1109,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount){
         return accountDeposit(plugin, accountID, amount);
@@ -676,6 +1128,7 @@ public interface Economy {
      *         {@link EconomyResponse.ResponseType} as to whether the transaction was a Success,
      *         Failure, Unsupported.
      */
+    @Deprecated
     @NotNull
     default EconomyResponse accountDeposit(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final String currency, @NotNull final BigDecimal amount){
         return accountDeposit(plugin, accountID, currency, amount);
@@ -693,8 +1146,21 @@ public interface Economy {
      * @param owner      the {@link UUID} of the account owner
      * @return true if the shared account is successfully created, false otherwise
      */
+    @Deprecated
     default boolean createSharedAccount(@NotNull final UUID accountID, @NotNull final String name, @NotNull final UUID owner){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    /**
+     * Creates a shared account with the specified parameters.
+     *
+     * @param accountID  the {@link UUID} of the account
+     * @param name       the name of the account
+     * @param owner      the {@link UUID} of the account owner
+     * @return true if the shared account is successfully created, false otherwise
+     */
+    default CompletableFuture<Boolean> createSharedAccountAsync(@NotNull final UUID accountID, @NotNull final String name, @NotNull final UUID owner){
+        return CompletableFuture.supplyAsync(() -> createSharedAccount(accountID, name, owner));
     }
 
     /**
@@ -705,8 +1171,21 @@ public interface Economy {
      *
      * @since 2.14
      */
+    @Deprecated
     default List<String> accountsOwnedBy(@NotNull final UUID accountID) {
         return accountsAccessTo(accountID, AccountPermission.OWNER);
+    }
+
+    /**
+     * Retrieves a list of account IDs owned by the specified account ID.
+     *
+     * @param accountID the unique identifier of the account
+     * @return a list of account names owned by the specified account ID
+     *
+     * @since 2.14
+     */
+    default CompletableFuture<List<String>> accountsOwnedByAsync(@NotNull final UUID accountID) {
+        return accountsAccessToAsync(accountID, AccountPermission.OWNER);
     }
 
     /**
@@ -717,8 +1196,21 @@ public interface Economy {
      *
      * @since 2.14
      */
+    @Deprecated
     default List<String> accountsMemberOf(@NotNull final UUID accountID) {
         return accountsAccessTo(accountID, AccountPermission.BALANCE, AccountPermission.DEPOSIT, AccountPermission.WITHDRAW);
+    }
+
+    /**
+     * Retrieves a list of account IDs that the specified account is a member of.
+     *
+     * @param accountID the UUID of the account to check membership for
+     * @return a List of String values representing the accounts that the account is a member of
+     *
+     * @since 2.14
+     */
+    default CompletableFuture<List<String>> accountsMemberOfAsync(@NotNull final UUID accountID) {
+        return accountsAccessToAsync(accountID, AccountPermission.BALANCE, AccountPermission.DEPOSIT, AccountPermission.WITHDRAW);
     }
 
     /**
@@ -730,8 +1222,22 @@ public interface Economy {
      *
      * @since 2.14
      */
+    @Deprecated
     default List<String> accountsAccessTo(@NotNull final UUID accountID, @NotNull final AccountPermission... permissions) {
         return new ArrayList<>();
+    }
+
+    /**
+     * Retrieves a list of account IDs that the specified account has the specified permissions for.
+     *
+     * @param accountID the UUID of the account to check access for
+     * @param permissions variable number of permissions to check for
+     * @return a list of accounts that the account has the specified permissions to
+     *
+     * @since 2.14
+     */
+    default CompletableFuture<List<String>> accountsAccessToAsync(@NotNull final UUID accountID, @NotNull final AccountPermission... permissions) {
+        return CompletableFuture.supplyAsync(() -> accountsAccessTo(accountID, permissions));
     }
 
     /**
@@ -741,7 +1247,31 @@ public interface Economy {
      * @param uuid the {@link UUID} to check for ownership of the account
      * @return true if the owner ID is the owner of the account, false otherwise
      */
+    @Deprecated
     default boolean isAccountOwner(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    /**
+     * Determines whether the specified owner ID is the owner of the account associated with the given account ID and plugin name.
+     *
+     * @param accountID the {@link UUID} of the account
+     * @param uuid the {@link UUID} to check for ownership of the account
+     * @return true if the owner ID is the owner of the account, false otherwise
+     */
+    default CompletableFuture<Boolean> isAccountOwnerAsync(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        return CompletableFuture.supplyAsync(() -> isAccountOwner(accountID, uuid));
+    }
+
+    /**
+     * Sets the owner of a specified plugin to the given accountID.
+     *
+     * @param accountID  The {@link UUID} of the account
+     * @param uuid       The {@link UUID} of the account to set as the owner.
+     * @return true if the owner is successfully set, false otherwise.
+     */
+    @Deprecated
+    default boolean setAccountOwner(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -752,7 +1282,19 @@ public interface Economy {
      * @param uuid       The {@link UUID} of the account to set as the owner.
      * @return true if the owner is successfully set, false otherwise.
      */
-    default boolean setAccountOwner(@NotNull final UUID accountID, @NotNull final UUID uuid){
+    default CompletableFuture<Boolean> setAccountOwnerAsync(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        return CompletableFuture.supplyAsync(() -> setAccountOwner(accountID, uuid));
+    }
+
+    /**
+     * Determines whether a specific member is an account member of a given plugin.
+     *
+     * @param accountID The {@link UUID} of the account.
+     * @param uuid The {@link UUID} to check for membership.
+     * @return true if the member is an account member, false otherwise.
+     */
+    @Deprecated
+    default boolean isAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -763,7 +1305,19 @@ public interface Economy {
      * @param uuid The {@link UUID} to check for membership.
      * @return true if the member is an account member, false otherwise.
      */
-    default boolean isAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
+    default CompletableFuture<Boolean> isAccountMemberAsync(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        return CompletableFuture.supplyAsync(() -> isAccountMember(accountID, uuid));
+    }
+
+    /**
+     * Adds a member to an account.
+     *
+     * @param accountID  The {@link UUID} of the account.
+     * @param uuid       The {@link UUID} of the member to be added.
+     * @return true if the member was successfully added, false otherwise.
+     */
+    @Deprecated
+    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -774,7 +1328,21 @@ public interface Economy {
      * @param uuid       The {@link UUID} of the member to be added.
      * @return true if the member was successfully added, false otherwise.
      */
-    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
+    default CompletableFuture<Boolean> addAccountMemberAsync(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        return CompletableFuture.supplyAsync(() -> addAccountMember(accountID, uuid));
+    }
+
+    /**
+     * Adds a member to an account with the specified initial permissions.
+     *
+     * @param accountID The {@link UUID} of the account.
+     * @param uuid The {@link UUID} of the member to be added.
+     * @param initialPermissions The initial permissions to be assigned to the member. The values for
+     *                           these should be assumed to be "true."
+     * @return true if the member was added successfully, false otherwise.
+     */
+    @Deprecated
+    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission... initialPermissions){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -787,7 +1355,19 @@ public interface Economy {
      *                           these should be assumed to be "true."
      * @return true if the member was added successfully, false otherwise.
      */
-    default boolean addAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission... initialPermissions){
+    default CompletableFuture<Boolean> addAccountMemberAsync(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission... initialPermissions){
+        return CompletableFuture.supplyAsync(() -> addAccountMember(accountID, uuid, initialPermissions));
+    }
+
+    /**
+     * Removes a member from an account.
+     *
+     * @param accountID the {@link UUID} of the account
+     * @param uuid the {@link UUID} of the member to be removed
+     * @return true if the member was successfully removed, false otherwise
+     */
+    @Deprecated
+    default boolean removeAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -798,7 +1378,20 @@ public interface Economy {
      * @param uuid the {@link UUID} of the member to be removed
      * @return true if the member was successfully removed, false otherwise
      */
-    default boolean removeAccountMember(@NotNull final UUID accountID, @NotNull final UUID uuid){
+    default CompletableFuture<Boolean> removeAccountMemberAsync(@NotNull final UUID accountID, @NotNull final UUID uuid){
+        return CompletableFuture.supplyAsync(() -> removeAccountMember(accountID, uuid));
+    }
+
+    /**
+     * Checks if the specified account has the given permission for the given plugin.
+     *
+     * @param accountID    the {@link UUID} of the account
+     * @param uuid         the {@link UUID} to check for the permission
+     * @param permission   the permission to check for
+     * @return true if the account has the specified permission, false otherwise
+     */
+    @Deprecated
+    default boolean hasAccountPermission(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission){
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -810,7 +1403,21 @@ public interface Economy {
      * @param permission   the permission to check for
      * @return true if the account has the specified permission, false otherwise
      */
-    default boolean hasAccountPermission(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission){
+    default CompletableFuture<Boolean> hasAccountPermissionAsync(@NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission){
+        return CompletableFuture.supplyAsync(() -> hasAccountPermission(accountID, uuid, permission));
+    }
+
+    /**
+     * Updates the account permission for a specific plugin and user.
+     *
+     * @param accountID    the {@link UUID} of the account
+     * @param uuid         the {@link UUID} to update the permission for
+     * @param permission   the new account permissions to set
+     * @param value        the new permission value to set for this value
+     * @return true if the account permission was successfully updated, false otherwise
+     */
+    @Deprecated
+    default boolean updateAccountPermission(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
@@ -823,8 +1430,8 @@ public interface Economy {
      * @param value        the new permission value to set for this value
      * @return true if the account permission was successfully updated, false otherwise
      */
-    default boolean updateAccountPermission(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    default CompletableFuture<Boolean> updateAccountPermissionAsync(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final UUID uuid, @NotNull final AccountPermission permission, final boolean value) {
+        return CompletableFuture.supplyAsync(() -> updateAccountPermission(plugin, accountID, uuid, permission, value));
     }
 
 }
