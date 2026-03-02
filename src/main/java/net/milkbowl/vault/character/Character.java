@@ -10,8 +10,10 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Character {
 
@@ -154,187 +156,368 @@ public class Character {
     // Economy Implementations
 
     public double getBalance() {
-        return eco.getBalance(player);
+        try {
+            return eco.getBalanceAsync(player.getUniqueId(), world.getName()).get(50, TimeUnit.MILLISECONDS).doubleValue();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public double getBalance(String world) {
-        return eco.getBalance(player, world);
+        try {
+            return eco.getBalanceAsync(player.getUniqueId(), world).get(50, TimeUnit.MILLISECONDS).doubleValue();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     public boolean has(double amount) {
-        return eco.has(player, amount);
+        try {
+            return eco.has(player.getUniqueId(), world.getName(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    public EconomyResponse withdraw(double amount) {
-        return eco.withdrawPlayer(player, amount);
+    public EconomyResponse withdraw(String plugin, double amount) {
+        try {
+            return eco.withdrawAccount(plugin, player.getUniqueId(), world.getName(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new EconomyResponse(amount, getBalance(), EconomyResponse.ResponseType.FAILURE, "Took Too Long or Not Implemented");
+        }
     }
 
-    public EconomyResponse deposit(double amount) {
-        return eco.depositPlayer(player, amount);
+    public EconomyResponse deposit(String plugin, double amount) {
+        try {
+            return eco.depositAccount(plugin, player.getUniqueId(), world.getName(), BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new EconomyResponse(amount, getBalance(), EconomyResponse.ResponseType.FAILURE, "Took Too Long or Not Implemented");
+        }
     }
 
     public boolean createPlayerAccount() {
-        return eco.createPlayerAccount(player);
+        try {
+            return eco.createAccountAsync(player.getUniqueId(), world.getName(), true).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean createPlayerAccount(String world) {
-        return eco.createPlayerAccount(player, world);
+        try {
+            return eco.createAccountAsync(player.getUniqueId(), world, true).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public EconomyResponse createBank(String name) {
-        return eco.createBank(name, player);
+        try {
+            return eco.createBankAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new EconomyResponse(0, getBalance(), EconomyResponse.ResponseType.FAILURE, "Took Too Long or Not Implemented");
+        }
     }
 
     public EconomyResponse deleteBank(String name) {
-        return eco.deleteBank(name);
+        try {
+            return eco.deleteBankAsync(name).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new EconomyResponse(0, getBalance(), EconomyResponse.ResponseType.FAILURE, "Took Too Long or Not Implemented");
+        }
     }
 
     public boolean hasAccount() {
-        return eco.hasAccount(player);
+        try {
+            return eco.hasAccountAsync(player.getUniqueId(), world.getName()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean hasAccount(String world) {
-        return eco.hasAccount(player, world);
+        try {
+            return eco.hasAccountAsync(player.getUniqueId(), world).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Multi-Currency Implementations Non-VaultUnlocked
 
     public boolean deposit(String plugin, BigDecimal amount, String world) {
-        return eco.accountDeposit(plugin, getUUID(), world, amount).transactionSuccess();
+        try {
+            return eco.depositAccount(plugin, getUUID(), world, amount).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean depositCurrency(String plugin, BigDecimal amount, String currency) {
-        return eco.accountDeposit(plugin, getUUID(), amount, currency).transactionSuccess();
+        try {
+            return eco.depositAccount(plugin, getUUID(), getWorld().toString(), amount, currency).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean depositCurrency(String plugin, BigDecimal amount, String currency, String world) {
-        return eco.accountDeposit(plugin, getUUID(), world, currency, amount).transactionSuccess();
+        try {
+            return eco.depositAccount(plugin, getUUID(), world, amount, currency).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean withdraw(String plugin, BigDecimal amount, String world) {
-        return eco.accountWithdraw(plugin, getUUID(), world, amount).transactionSuccess();
+        try {
+            return eco.withdrawAccount(plugin, getUUID(), world, amount).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean withdrawCurrency(String plugin, BigDecimal amount, String currency) {
-        return eco.accountWithdraw(plugin, getUUID(), currency, amount).transactionSuccess();
+        try {
+            return eco.withdrawAccount(plugin, getUUID(), getWorld().toString(), amount, currency).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean withdrawCurrency(String plugin, BigDecimal amount, String currency, String world) {
-        return eco.accountWithdraw(plugin, getUUID(), world, currency, amount).transactionSuccess();
+        try {
+            return eco.withdrawAccount(plugin, getUUID(), world, amount, currency).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public BigDecimal getAccountBalance() {
-        return eco.getAccountBalance(getUUID());
+        try {
+            return eco.getBalanceAsync(getUUID(), getWorld().toString()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return eco.getCurrencyMin(eco.getDefaultCurrencyName());
+        }
     }
 
     public BigDecimal getAccountBalance(String currency) {
-        return eco.getAccountBalance(getUUID(), currency);
+        try {
+            return eco.getBalanceAsync(getUUID(), currency).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return eco.getCurrencyMin(eco.getDefaultCurrencyName());
+        }
     }
 
     public BigDecimal getAccountBalance(String currency, String world) {
-        return eco.getAccountBalance(getUUID(), currency, world);
+        try {
+            return eco.getBalanceAsync(getUUID(), currency, world).get(50, TimeUnit.MILLISECONDS);
+        }
+        catch (Exception e) {
+            return eco.getCurrencyMin(currency, world);
+        }
     }
 
     public boolean hasPlayerAccount() {
-        return eco.hasAccount(getUUID());
+        try {
+            return eco.hasAccountAsync(getUUID(), getWorld().getName()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean hasPlayerAccount(String world) {
-        return eco.hasAccount(getUUID(), world);
+        try {
+            return eco.hasAccountAsync(getUUID(), world).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 
     public boolean accountHas(BigDecimal amount) {
-        return eco.accountHas(getUUID(), amount);
+        try {
+            return eco.has(getUUID(), getWorld().getName(), amount).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean accountHasInWorld(BigDecimal amount, String world) {
-        return eco.accountHasInWorld(getUUID(), amount, world);
+        try {
+            return eco.has(getUUID(), world, amount).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean accountHas(BigDecimal amount, String currency) {
-        return eco.accountHas(getUUID(), amount, currency);
+        try {
+            return eco.has(getUUID(), getWorld().toString(), amount, currency).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public boolean accountHasInWorld(BigDecimal amount, String currency, String world) {
-        return eco.accountHasInWorld(getUUID(), amount, currency, world);
+        try {
+            return eco.has(getUUID(), world, amount, currency).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean accountSupportsCurrency(String currency) {
-        return eco.accountSupportsCurrency(getUUID(), currency);
+        try {
+            return eco.accountSupportsCurrency(getUUID(), currency).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean accountSupportsCurrency(String currency, String world) {
-        return eco.accountSupportsCurrency(getUUID(), currency, world);
+        try {
+            return eco.accountSupportsCurrency(getUUID(), currency, world).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
-    public boolean createAccount(UUID accountId, String name) {
-        return eco.createAccount(getUUID(), name, true);
+    public boolean createAccount(UUID accountId, String world) {
+        try {
+            return eco.createAccountAsync(getUUID(), world, true).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
 
     }
 
-    public boolean createAccount(UUID accountId, String name, String worldName) {
-        return eco.createAccount(getUUID(), name, worldName, true);
+    public boolean createAccount(UUID accountId, String worldName, String accountName) {
+        try {
+            return eco.createAccountAsync(getUUID(), worldName, true, accountName).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean setAccount(String plugin, BigDecimal amount) {
-        return eco.setAccount(plugin, getUUID(), amount).transactionSuccess();
+        try {
+            return eco.setAccountAsync(plugin, getUUID(), world.getName(), amount).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean setAccount(String plugin, BigDecimal amount, String worldName) {
-        return eco.setAccount(plugin, getUUID(), worldName, amount).transactionSuccess();
+        try {
+            return eco.setAccountAsync(plugin, getUUID(), worldName, amount).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean setAccount(String plugin, String currency, BigDecimal amount, String worldName) {
-        return eco.setAccount(plugin, getUUID(), worldName, currency, amount).transactionSuccess();
+        try {
+            return eco.setAccountAsync(plugin, getUUID(), worldName, currency, amount).get(50, TimeUnit.MILLISECONDS).transactionSuccess();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean createSharedAccount(UUID accountId, String name) {
-        return eco.createSharedAccount(accountId, name, getUUID());
+        try {
+            return eco.createSharedAccountAsync(accountId, name, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public List<String> getOwnedAccounts() {
-        return eco.accountsOwnedBy(getUUID());
+        try {
+            return eco.accountsOwnedByAsync(getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     public List<String> getAccountsMemberOf() {
-        return eco.accountsMemberOf(getUUID());
+        try {
+            return eco.accountsMemberOfAsync(getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     public List<String> getAccountsAccessTo(AccountPermission permission) {
-        return eco.accountsAccessTo(getUUID());
+        try {
+            return eco.accountsAccessToAsync(getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
 
     public boolean isAccountOwner(UUID accountId) {
-        return eco.isAccountOwner(accountId, getUUID());
+        try {
+            return eco.isAccountOwnerAsync(accountId, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean isAccountMember(UUID accountId) {
-        return eco.isAccountMember(accountId, getUUID());
+        try {
+            return eco.isAccountMemberAsync(accountId, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean setAccountOwner(UUID accountId) {
-        return eco.setAccountOwner(accountId, getUUID());
+        try {
+            return eco.setAccountOwnerAsync(accountId, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean addAccountMember(UUID accountId) {
-        return eco.addAccountMember(accountId, getUUID());
+        try {
+            return eco.addAccountMemberAsync(accountId, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean addAccountMember(UUID accountId, AccountPermission permission) {
-        return eco.addAccountMember(accountId, getUUID(), permission);
+        try {
+            return eco.addAccountMemberAsync(accountId, getUUID(), permission).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean removeAccountMember(UUID accountId) {
-        return eco.removeAccountMember(accountId, getUUID());
+        try {
+            return eco.removeAccountMemberAsync(accountId, getUUID()).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean hasAccountPermission(UUID accountId, AccountPermission permission) {
-        return eco.hasAccountPermission(accountId, getUUID(), permission);
+        try {
+            return eco.hasAccountPermissionAsync(accountId, getUUID(), permission).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public boolean setAccountPermission(String plugin, UUID accountId, AccountPermission permission, boolean value) {
-        return eco.updateAccountPermission(plugin, accountId, getUUID(), permission, value);
+        try {
+            return eco.updateAccountPermissionAsync(plugin, accountId, getUUID(), permission, value).get(50, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 
