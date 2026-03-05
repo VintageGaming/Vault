@@ -3,7 +3,11 @@ package net.milkbowl.vault.permission.plugins;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.permission.Permission;
 import org.anjocaido.groupmanager.GroupManager;
 import org.anjocaido.groupmanager.data.Group;
@@ -352,76 +356,94 @@ public class Permission_GroupManager
   //Methods added for CustomVault Update
 
     @Override
-  public String[] getPlayerAllPermissions(OfflinePlayer player) {
-      OverloadedWorldHolder owh = groupManager.getWorldsHolder().getDefaultWorld();
+  public CompletableFuture<String[]> getPlayerAllPermissions(OfflinePlayer player) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = groupManager.getWorldsHolder().getDefaultWorld();
 
-      User user = owh.getUser(player.getUniqueId().toString());
+          User user = owh.getUser(player.getUniqueId().toString());
 
-      if (user == null) {
-          return new String[0];
-      }
-
-      return user.getPermissions().keySet().toArray(new String[0]);
-  }
-
-    @Override
-  public String[] getGroupAllPermissions(String world, String group) {
-      OverloadedWorldHolder owh = groupManager.getWorldsHolder().getWorldData(world);
-
-      if (owh == null) {
-          owh = groupManager.getWorldsHolder().getDefaultWorld();
-      }
-
-      Group g = owh.getGroup(group);
-
-      if (g == null) {
-          return new String[0];
-      }
-
-      return g.getPermissions().keySet().toArray(new String[0]);
-  }
-
-    @Override
-  public String[] getGroupParents(String world, String group) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
-      Group g = owh.getGroup(group);
-      if (g == null) {
-          return new String[0];
+          if (user == null) {
+              return new String[0];
           }
-      return g.getInherits().toArray(new String[0]);
+
+          return user.getPermissions().keySet().toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
   }
 
     @Override
-  public boolean groupCreate(String worldName, String group, boolean isDefault) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(worldName);
-      if (owh == null) {
-        return false;
-      }
+  public CompletableFuture<String[]> getGroupAllPermissions(String world, String group) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = groupManager.getWorldsHolder().getWorldData(world);
 
-      return (owh.createGroup(group) != null);
+          if (owh == null) {
+              owh = groupManager.getWorldsHolder().getDefaultWorld();
+          }
+
+          Group g = owh.getGroup(group);
+
+          if (g == null) {
+              return new String[0];
+          }
+
+          return g.getPermissions().keySet().toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
   }
 
     @Override
-  public boolean groupDelete(String worldName, String group) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(worldName);
-      if (owh == null) {
-          return false;
-      }
+  public CompletableFuture<String[]> getGroupParents(String world, String group) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getDefaultWorld();
+          Group g = owh.getGroup(group);
+          if (g == null) {
+              return new String[0];
+          }
+          return g.getInherits().toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
-      Group g = owh.getGroup(group);
-      if (g == null) {
-          return false;
-      }
-      return owh.removeGroup(g.getName());
+  }
+
+    @Override
+  public CompletableFuture<Boolean> groupCreate(String worldName, String group, boolean isDefault) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(worldName);
+          if (owh == null) {
+              return false;
+          }
+
+          return (owh.createGroup(group) != null);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+  }
+
+    @Override
+  public CompletableFuture<Boolean> groupDelete(String worldName, String group) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(worldName);
+          if (owh == null) {
+              return false;
+          }
+
+          Group g = owh.getGroup(group);
+          if (g == null) {
+              return false;
+          }
+          return owh.removeGroup(g.getName());
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
   }
 
   @Override
-    public String getDefaultGroup(String world) {
-      OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(world);
-      if (owh == null) {
-          owh = this.groupManager.getWorldsHolder().getDefaultWorld();
-      }
-      return owh.getDefaultGroup().getName();
+    public CompletableFuture<String> getDefaultGroup(String world) {
+      return CompletableFuture.supplyAsync(() -> {
+          OverloadedWorldHolder owh = this.groupManager.getWorldsHolder().getWorldData(world);
+          if (owh == null) {
+              owh = this.groupManager.getWorldsHolder().getDefaultWorld();
+          }
+          return owh.getDefaultGroup().getName();
+      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+
   }
 
 

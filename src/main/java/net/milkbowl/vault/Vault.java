@@ -1,10 +1,12 @@
 package net.milkbowl.vault;
 
-import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 
@@ -56,16 +58,22 @@ public class Vault extends JavaPlugin {
    private ServicesManager sm;
    
    private static Vault plugin;
+   public static ThreadPoolExecutor vaultEconomyService;
+   public static ThreadPoolExecutor vaultPermissionService;
    
    public void onDisable() {
        if (usingVEco)
            Veco.saveBalances();
+       shutdownVaultPermissionsServiceWorkers();
+       shutdownVaultEconomyServiceWorkers();
        getServer().getServicesManager().unregisterAll(this);
        Bukkit.getScheduler().cancelTasks(this);
    }
  
    
    public void onEnable() {
+       loadVaultPermissionsServiceWorkers();
+       loadVaultEconomyServiceWorkers();
        plugin = this;
        log = getLogger();
        this.currentVersionTitle = getDescription().getVersion().split("-")[0];
@@ -268,9 +276,41 @@ public class Vault extends JavaPlugin {
      return true;
    }
 
-   // Used to help implement/test custom item plugins
+   // Used to help implement/test New Implementations
    private void testCommand(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player player)) return;
+        /*if (!(sender instanceof Player player)) return;
+
+        Economy economy = sm.getRegistration(Economy.class).getProvider();
+        int iterations = 5000;
+       AtomicInteger success = new AtomicInteger();
+       AtomicInteger failed = new AtomicInteger();
+       List<CompletableFuture<BigDecimal>> futures = new ArrayList<>();
+        if (args[0].equalsIgnoreCase("modern")) {
+            for (int i = 0; i < iterations; i++) {
+                UUID uuid = UUID.randomUUID();
+                // Fire off 1000 async requests instantly
+                futures.add(economy.getBalanceAsync(uuid, "").handle((res, ex) -> {
+                    if (ex != null) failed.incrementAndGet();
+                    else success.incrementAndGet();
+                    return res;
+                }));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                    .thenRun(() -> {
+                        sender.sendMessage("§aTest Complete!");
+                        sender.sendMessage("§7Success: §f" + success.get());
+                        sender.sendMessage("§7Failed: §f" + failed.get());
+                    });
+        }
+        else if (args[0].equalsIgnoreCase("legacy")) {
+            for (int i = 0; i < iterations; i++) {
+                UUID uuid = UUID.randomUUID();
+                // Fire off 1000 async requests instantly
+                economy.getBalance(uuid.toString(), "");
+            }
+
+        }
+       sender.sendMessage("Fired " + iterations + " Sync Calls or Firing Async Calls transactions into the void.");
 
 
         if (args.length < 1) {
@@ -291,7 +331,7 @@ public class Vault extends JavaPlugin {
             player.sendMessage("Found Custom Item: " + registry.customItemExists(args[0]));
             if (registry.customItemExists(args[0], "ItemsAdder"))
                 player.getInventory().addItem(registry.getCustomItemStack(args[0], 2));
-        }
+        }*/
 
    }
  
@@ -418,5 +458,76 @@ public class Vault extends JavaPlugin {
        return false;
      } 
    }
+
+   private void loadVaultEconomyServiceWorkers() {
+       vaultEconomyService = new ThreadPoolExecutor(
+               2, // Keep 2 thread "Parked" (Minimum)
+               8, // Allow up to 8 if the server gets busy or calls are taking longer
+               60L, TimeUnit.SECONDS, // If the extra 6 are idle for 60s, kill them
+               new LinkedBlockingQueue<>(),
+               new ThreadFactoryBuilder().setNameFormat("Vault-Economy-Worker-%d").setDaemon(true).build()
+       );
+       vaultEconomyService.allowCoreThreadTimeOut(true);
+   }
+
+   private void shutdownVaultEconomyServiceWorkers() {
+       if (vaultEconomyService != null) {
+           // 1. Stop accepting new economy requests immediately
+           vaultEconomyService.shutdown();
+
+           try {
+               // 2. Give the database 5 seconds to finish saving any pending balances
+               if (!vaultEconomyService.awaitTermination(5, TimeUnit.SECONDS)) {
+
+                   // 3. If it's taking too long, force the threads to stop
+                   vaultEconomyService.shutdownNow();
+
+                   // 4. One final wait to let the OS clean up the thread handles
+                   if (!vaultEconomyService.awaitTermination(5, TimeUnit.SECONDS)) {
+                       getLogger().severe("Economy threads timed out during shutdown!");
+                   }
+               }
+           } catch (InterruptedException e) {
+               vaultEconomyService.shutdownNow();
+               Thread.currentThread().interrupt();
+           }
+       }
+   }
+
+    private void loadVaultPermissionsServiceWorkers() {
+        vaultPermissionService = new ThreadPoolExecutor(
+                1, // Keep 1 thread "Parked" (Minimum)
+                4, // Allow up to 4 if the server gets busy
+                60L, TimeUnit.SECONDS, // If the extra 3 are idle for 60s, kill them
+                new LinkedBlockingQueue<>(),
+                new ThreadFactoryBuilder().setNameFormat("Vault-Permissions-Worker-%d").setDaemon(true).build()
+        );
+        vaultPermissionService.allowCoreThreadTimeOut(true);
+    }
+
+    private void shutdownVaultPermissionsServiceWorkers() {
+        if (vaultPermissionService != null) {
+            // 1. Stop accepting new economy requests immediately
+            vaultPermissionService.shutdown();
+
+            try {
+                // 2. Give the database 5 seconds to finish saving any pending balances
+                if (!vaultPermissionService.awaitTermination(5, TimeUnit.SECONDS)) {
+
+                    // 3. If it's taking too long, force the threads to stop
+                    vaultPermissionService.shutdownNow();
+
+                    // 4. One final wait to let the OS clean up the thread handles
+                    if (!vaultPermissionService.awaitTermination(5, TimeUnit.SECONDS)) {
+                        getLogger().severe("Economy threads timed out during shutdown!");
+                    }
+                }
+            } catch (InterruptedException e) {
+                vaultPermissionService.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
 
  }

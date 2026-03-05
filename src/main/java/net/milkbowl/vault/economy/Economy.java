@@ -2,13 +2,22 @@ package net.milkbowl.vault.economy;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
+import net.milkbowl.vault.Vault;
+import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 
 public interface Economy {
+
+    // Hopefully Prevents Same Tick Transactions from the same person/account
+    Set<UUID> activeTransactions = ConcurrentHashMap.newKeySet();
+    Set<String> activeBankTransactions = ConcurrentHashMap.newKeySet();
+
+    EconomyResponse TRANSACTION_IN_PROGRESS = new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "A transaction is already in progress!");
+    EconomyResponse INVALID_PLAYER = new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Invalid Player!");
+
     boolean isEnabled();
 
     String getName();
@@ -17,34 +26,50 @@ public interface Economy {
 
     int fractionalDigits();
 
-    default String format(double amount) {
-        return format(BigDecimal.valueOf(amount));
-    }
+    String format(double amount);
 
-    default String currencyNamePlural() {
-        return getDefaultCurrencyPlural();
-    }
+    String currencyNamePlural();
 
-    default String currencyNameSingular() {
-        return getDefaultCurrencySingular();
-    }
+    String currencyNameSingular();
 
     //------------------------------------------------------------------------------------------------------
     //-----------------------------------NOTICE: accountId OR Player UUID-----------------------------------
     //------------------------------------------------------------------------------------------------------
 
     default CompletableFuture<Boolean> hasAccountAsync(UUID uuid, String worldName) {
-      return CompletableFuture.supplyAsync(() -> hasAccount(uuid.toString(), worldName));
+      return CompletableFuture.supplyAsync(() -> {
+          try {
+              OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+              if (offlinePlayer.hasPlayedBefore())
+                  return hasAccount(offlinePlayer, worldName);
+          } catch (Exception e) {
+              // Default to UUID
+          }
+          return hasAccount(uuid.toString(), worldName);
+      }, Vault.vaultEconomyService)
+              .exceptionally(ex -> false);
     }
 
     default CompletableFuture<Boolean> hasAccountAsync(OfflinePlayer offlinePlayer, String worldName) {
       return hasAccountAsync(offlinePlayer.getUniqueId(), worldName);
     }
 
+    private CompletableFuture<Boolean> hasAccountAsync(String accountId, String worldName) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(accountId);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(accountId).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> hasAccountAsync( uuid, worldName))
+                .exceptionally(ex -> false);
+    }
+
     @Deprecated
     default boolean hasAccount(String accountId) {
       try {
-          return hasAccountAsync(UUID.fromString(accountId), "").get(50, TimeUnit.MILLISECONDS);
+          return hasAccountAsync(accountId, "").get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
           return false;
       }
@@ -53,7 +78,7 @@ public interface Economy {
     @Deprecated
     default boolean hasAccount(OfflinePlayer player) {
       try {
-          return hasAccountAsync(player.getUniqueId(), "").get(50, TimeUnit.MILLISECONDS);
+          return hasAccountAsync(player, "").get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
           return false;
       }
@@ -62,7 +87,7 @@ public interface Economy {
     @Deprecated
     default boolean hasAccount(String accountId, String worldName) {
       try {
-          return hasAccountAsync(UUID.fromString(accountId), worldName).get(50, TimeUnit.MILLISECONDS);
+          return hasAccountAsync(accountId, worldName).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
           return false;
       }
@@ -71,7 +96,7 @@ public interface Economy {
     @Deprecated
     default boolean hasAccount(OfflinePlayer player, String worldName) {
       try {
-          return hasAccountAsync(player.getUniqueId(), worldName).get(50, TimeUnit.MILLISECONDS);
+          return hasAccountAsync(player, worldName).get(500, TimeUnit.MILLISECONDS);
       }
       catch (Exception e) {
           return false;
@@ -81,7 +106,15 @@ public interface Economy {
     //-----------------------------------------Get Balance Methods----------------------------------------
 
     default CompletableFuture<BigDecimal> getBalanceAsync(UUID uuid, String world) {
-      return CompletableFuture.supplyAsync(() -> BigDecimal.valueOf(getBalance(uuid.toString(), world)));
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return BigDecimal.valueOf(getBalance(offlinePlayer, world));
+                    }
+
+                    return BigDecimal.valueOf(getBalance(uuid.toString(), world));
+
+                }, Vault.vaultEconomyService).exceptionally(ex -> BigDecimal.ZERO);
     }
 
     default CompletableFuture<BigDecimal> getBalanceAsync(OfflinePlayer offlinePlayer, String world) {
@@ -96,12 +129,25 @@ public interface Economy {
       return getBalanceAsync(offlinePlayer.getUniqueId(), world, currency);
     }
 
+    private CompletableFuture<BigDecimal> getBalanceAsync(String accountId, String worldName) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(accountId);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(accountId).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> getBalanceAsync( uuid, worldName))
+                .exceptionally(ex -> BigDecimal.ZERO);
+    }
+
     @Deprecated
     default double getBalance(String accountId) {
       try {
-          return getBalanceAsync(UUID.fromString(accountId), "").get(50, TimeUnit.MILLISECONDS).doubleValue();
+          return getBalanceAsync(accountId, "").get(500, TimeUnit.MILLISECONDS).doubleValue();
       }
       catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] getBalance() Sync Timeout! Economy Provider is taking too long.");
           return 0.0;
       }
     }
@@ -109,9 +155,10 @@ public interface Economy {
     @Deprecated
     default double getBalance(OfflinePlayer player) {
       try {
-          return getBalanceAsync(player.getUniqueId(), "").get(50, TimeUnit.MILLISECONDS).doubleValue();
+          return getBalanceAsync(player, "").get(500, TimeUnit.MILLISECONDS).doubleValue();
       }
       catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] getBalance() Sync Timeout! Economy Provider is taking too long.");
           return 0.0;
       }
     }
@@ -119,9 +166,10 @@ public interface Economy {
     @Deprecated
     default double getBalance(String accountId, String worldName) {
       try {
-          return getBalanceAsync(UUID.fromString(accountId), worldName).get(50, TimeUnit.MILLISECONDS).doubleValue();
+          return getBalanceAsync(accountId, worldName).get(500, TimeUnit.MILLISECONDS).doubleValue();
       }
       catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] getBalance() Sync Timeout! Economy Provider is taking too long.");
           return 0.0;
       }
     }
@@ -129,44 +177,70 @@ public interface Economy {
     @Deprecated
     default double getBalance(OfflinePlayer player, String worldName) {
       try {
-          return getBalanceAsync(player.getUniqueId(), worldName).get(50, TimeUnit.MILLISECONDS).doubleValue();
+          return getBalanceAsync(player, worldName).get(500, TimeUnit.MILLISECONDS).doubleValue();
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] getBalance() Sync Timeout! Economy Provider is taking too long.");
           return 0.0;
       }
     }
 
     //----------------------------------------------has() Methods----------------------------------------------
 
-    default CompletableFuture<Boolean> has(UUID uuid, String worldName, BigDecimal amount) {
-      return CompletableFuture.supplyAsync(() -> has(uuid.toString(), worldName, amount.doubleValue()));
+    default CompletableFuture<Boolean> hasAsync(UUID uuid, String worldName, BigDecimal amount) {
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    double hasAmount = amount.doubleValue();
+
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return has(offlinePlayer, worldName, hasAmount);
+                    }
+
+                    return has(uuid.toString(), worldName, hasAmount);
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> false);
     }
 
-    default CompletableFuture<Boolean> has(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
-      return has(offlinePlayer.getUniqueId(), worldName, amount);
+    default CompletableFuture<Boolean> hasAsync(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
+      return hasAsync(offlinePlayer.getUniqueId(), worldName, amount);
     }
 
-    default CompletableFuture<Boolean> has(UUID uuid, String worldName, BigDecimal amount, String currency) {
+    default CompletableFuture<Boolean> hasAsync(UUID uuid, String worldName, BigDecimal amount, String currency) {
       throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
-    default CompletableFuture<Boolean> has(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount, String currency) {
-      return has(offlinePlayer.getUniqueId(), worldName, amount, currency);
+    default CompletableFuture<Boolean> hasAsync(OfflinePlayer offlinePlayer, String worldName, BigDecimal amount, String currency) {
+      return hasAsync(offlinePlayer.getUniqueId(), worldName, amount, currency);
+    }
+
+    private CompletableFuture<Boolean> hasAsync(String accountId, String worldName, BigDecimal amount) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(accountId);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(accountId).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> hasAsync(uuid, worldName, amount))
+                .exceptionally(ex -> false);
     }
 
     @Deprecated
     default boolean has(String accountId, double amount) {
-      try {
-          return has(UUID.fromString(accountId), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-          return false;
-      }
+        try {
+            return hasAsync(accountId, "", BigDecimal.valueOf(amount)).get(500, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            Bukkit.getLogger().info("[Vault-Economy] has() Sync Timeout! Economy Provider is taking too long.");
+            return false;
+        }
     }
 
     @Deprecated
     default boolean has(OfflinePlayer player, double amount) {
       try {
-          return has(player.getUniqueId(), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return hasAsync(player, "", BigDecimal.valueOf(amount)).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] has() Sync Timeout! Economy Provider is taking too long.");
           return false;
       }
     }
@@ -174,8 +248,9 @@ public interface Economy {
     @Deprecated
     default boolean has(String accountId, String worldName, double amount) {
       try {
-          return has(UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return hasAsync(accountId, worldName, BigDecimal.valueOf(amount)).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] has() Sync Timeout! Economy Provider is taking too long.");
           return false;
       }
     }
@@ -183,16 +258,39 @@ public interface Economy {
     @Deprecated
     default boolean has(OfflinePlayer player, String worldName, double amount) {
       try {
-          return has(player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return hasAsync(player, worldName, BigDecimal.valueOf(amount)).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] has() Sync Timeout! Economy Provider is taking too long.");
           return false;
       }
     }
 
     //--------------------------------- withdrawAccount() and withdrawPlayer() Methods --------------------------
 
+    // Main Method
     default CompletableFuture<EconomyResponse> withdrawAccount(String plugin, UUID uuid, String worldName, BigDecimal amount) {
-      return CompletableFuture.supplyAsync(() -> withdrawPlayer(uuid.toString(), worldName, amount.doubleValue()));
+
+        if (!activeTransactions.add(uuid)) {
+            return CompletableFuture.completedFuture(TRANSACTION_IN_PROGRESS);
+        }
+
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    double withdrawAmount = amount.doubleValue();
+
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        activeTransactions.remove(uuid);
+                        return withdrawPlayer(offlinePlayer, worldName, withdrawAmount);
+                    }
+
+                    activeTransactions.remove(uuid);
+                    return withdrawPlayer(uuid.toString(), worldName, withdrawAmount);
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> {
+                    activeTransactions.remove(uuid);
+                    return INVALID_PLAYER;
+                });
     }
 
     default CompletableFuture<EconomyResponse> withdrawAccount(String plugin, OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
@@ -207,50 +305,97 @@ public interface Economy {
       return withdrawAccount(plugin, offlinePlayer.getUniqueId(), worldName, amount, currency);
     }
 
+    private CompletableFuture<EconomyResponse> withdrawAccount(String accountId, String worldName, double amount) {
+
+        BigDecimal withdrawAmount = BigDecimal.valueOf(amount);
+
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(accountId);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(accountId).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> withdrawAccount("Async-Final", uuid, worldName, withdrawAmount))
+                .exceptionally(ex -> INVALID_PLAYER);
+    }
+
     @Deprecated
     default EconomyResponse withdrawPlayer(String accountId, double amount) {
-      try {
-          return withdrawAccount("Non-Async Call", UUID.fromString(accountId), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
-      }
-      catch (Exception e) {
-          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            return withdrawAccount(accountId, "", amount).get(1000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            Bukkit.getLogger().warning(String.format(
+                    "[Vault] Legacy Sync Timeout! Player %s may have been charged $%.2f without the calling plugin knowing.",
+                    accountId, amount
+            ));
+            return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+        }
     }
 
     @Deprecated
     default EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
       try {
-          return withdrawAccount("Non-Async Call", player.getUniqueId(), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return withdrawAccount("Non-Async Call", player, "", BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       }
       catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault] Legacy Sync Timeout! Player %s may have been charged $%.2f without the calling plugin knowing.",
+                  player.getName(), amount
+          ));
           return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
 
     @Deprecated
     default EconomyResponse withdrawPlayer(String accountId, String worldName, double amount) {
-      try {
-          return withdrawAccount("Non-Async Call", UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
-      }
-      catch (Exception e) {
-          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            return withdrawAccount(accountId, worldName, amount).get(1000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            Bukkit.getLogger().warning(String.format(
+                    "[Vault] Legacy Sync Timeout! Player %s may have been charged $%.2f without the calling plugin knowing.",
+                    accountId, amount
+            ));
+            return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+        }
     }
 
     @Deprecated
     default EconomyResponse withdrawPlayer(OfflinePlayer player, String worldName, double amount) {
       try {
-          return withdrawAccount("Non-Async Call", player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return withdrawAccount("Non-Async Call", player, worldName, BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       }
       catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault] Legacy Sync Timeout! Player %s may have been charged $%.2f without the calling plugin knowing.",
+                  player.getName(), amount
+          ));
           return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
 
     //--------------------------------------depositPlayer() & depositAccount() Methods--------------------------------------
 
-    default CompletableFuture<EconomyResponse> depositAccount(String plugin, UUID uuid, String worldName, BigDecimal amout) {
-      return CompletableFuture.supplyAsync(() -> depositPlayer(uuid.toString(), worldName, amout.doubleValue()));
+    // Main Method
+    default CompletableFuture<EconomyResponse> depositAccount(String plugin, UUID uuid, String worldName, BigDecimal amount) {
+
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    double depositAmount = amount.doubleValue();
+
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        activeTransactions.remove(uuid);
+                        return depositPlayer(offlinePlayer, worldName, depositAmount);
+                    }
+
+                    activeTransactions.remove(uuid);
+                    return depositPlayer(uuid.toString(), worldName, depositAmount);
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> {
+                    activeTransactions.remove(uuid);
+                    return INVALID_PLAYER;
+                });
     }
 
     default CompletableFuture<EconomyResponse> depositAccount(String plugin, OfflinePlayer offlinePlayer, String worldName, BigDecimal amount) {
@@ -265,11 +410,29 @@ public interface Economy {
       return depositAccount(plugin, offlinePlayer.getUniqueId(), worldName, amount, currency);
     }
 
+    private CompletableFuture<EconomyResponse> depositAccount(String accountId, String worldName, double amount) {
+        BigDecimal depositAmount = BigDecimal.valueOf(amount);
+
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(accountId);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(accountId).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> depositAccount("Async-Final", uuid, worldName, depositAmount))
+                .exceptionally(ex -> INVALID_PLAYER);
+    }
+
     @Deprecated
     default EconomyResponse depositPlayer(String accountId, double amount) {
       try {
-          return depositAccount("Non-Sync Call", UUID.fromString(accountId), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return depositAccount(accountId, "", amount).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault-Economy] depositPlayer() Sync Timeout! Player %s may have been deposited $%.2f without the calling plugin knowing.",
+                  accountId, amount
+          ));
           return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -277,26 +440,38 @@ public interface Economy {
     @Deprecated
     default EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
       try {
-          return depositAccount("Non-Sync Call", player.getUniqueId(), "", BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return depositAccount("Non-Sync Call", player, "", BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault-Economy] depositPlayer() Sync Timeout! Player %s may have been deposited $%.2f without the calling plugin knowing.",
+                  player.getName(), amount
+          ));
           return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
 
     @Deprecated
     default EconomyResponse depositPlayer(String accountId, String worldName, double amount) {
-      try {
-          return depositAccount("Non-Sync Call", UUID.fromString(accountId), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-          return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            return depositAccount(accountId, worldName, amount).get(1000, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            Bukkit.getLogger().warning(String.format(
+                    "[Vault-Economy] depositPlayer() Sync Timeout! Player %s may have been deposited $%.2f without the calling plugin knowing.",
+                    accountId, amount
+            ));
+            return new EconomyResponse(0.0, getBalance(accountId), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
+        }
     }
 
     @Deprecated
     default EconomyResponse depositPlayer(OfflinePlayer player, String worldName, double amount) {
       try {
-          return depositAccount("Non-Sync Call", player.getUniqueId(), worldName, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return depositAccount("Non-Sync Call", player, worldName, BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault-Economy] depositPlayer() Sync Timeout! Player %s may have been deposited $%.2f without the calling plugin knowing.",
+                  player.getName(), amount
+          ));
           return new EconomyResponse(0.0, getBalance(player), EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -304,7 +479,16 @@ public interface Economy {
     //------------------------------------------------- Bank Methods (Eww) --------------------------------------------------------
 
     default CompletableFuture<EconomyResponse> createBankAsync(String name, UUID uuid) {
-      return CompletableFuture.supplyAsync(() -> createBank(name, uuid.toString()));
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return createBank(name, offlinePlayer);
+                    }
+
+                    return createBank(name, uuid.toString());
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> INVALID_PLAYER);
     }
 
     default CompletableFuture<EconomyResponse> createBankAsync(String name, OfflinePlayer offlinePlayer) {
@@ -312,59 +496,141 @@ public interface Economy {
     }
 
     default CompletableFuture<EconomyResponse> deleteBankAsync(String name) {
-      return CompletableFuture.supplyAsync(() -> deleteBank(name));
+      return CompletableFuture.supplyAsync(() -> deleteBank(name), Vault.vaultEconomyService);
     }
 
     default CompletableFuture<EconomyResponse> bankBalanceAsync(String name) {
-      return CompletableFuture.supplyAsync(() -> bankBalance(name));
+      return CompletableFuture.supplyAsync(() -> bankBalance(name), Vault.vaultEconomyService);
     }
 
     default CompletableFuture<EconomyResponse> bankHasAsync(String name, BigDecimal amount) {
-      return CompletableFuture.supplyAsync(() -> bankHas(name, amount.doubleValue()));
+      return CompletableFuture.supplyAsync(() -> bankHas(name, amount.doubleValue()), Vault.vaultEconomyService);
     }
 
     default CompletableFuture<EconomyResponse> bankWithdrawAsync(String name, BigDecimal amount) {
-      return CompletableFuture.supplyAsync(() -> bankWithdraw(name, amount.doubleValue()));
+
+        if (!activeBankTransactions.add(name)) {
+            return CompletableFuture.completedFuture(TRANSACTION_IN_PROGRESS);
+        }
+
+      return CompletableFuture.supplyAsync(() -> {
+          try {
+              return bankWithdraw(name, amount.doubleValue());
+          } finally {
+              activeBankTransactions.remove(name);
+          }
+      }, Vault.vaultEconomyService);
     }
 
     default CompletableFuture<EconomyResponse> bankDepositAsync(String name, BigDecimal amount) {
-      return CompletableFuture.supplyAsync(() -> bankDeposit(name, amount.doubleValue()));
+
+        if (!activeBankTransactions.add(name)) {
+            return CompletableFuture.completedFuture(TRANSACTION_IN_PROGRESS);
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+          try {
+              return bankDeposit(name, amount.doubleValue());
+          }
+          finally {
+              activeBankTransactions.remove(name);
+          }
+      }, Vault.vaultEconomyService);
     }
 
     default CompletableFuture<EconomyResponse> isBankOwnerAsync(String name, UUID uuid) {
-      return CompletableFuture.supplyAsync(() -> isBankOwner(name, uuid.toString()));
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return isBankOwner(name, offlinePlayer);
+                    }
+
+                    return isBankOwner(name, uuid.toString());
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> INVALID_PLAYER);
     }
 
     default CompletableFuture<EconomyResponse> isBankOwnerAsync(String name, OfflinePlayer offlinePlayer) {
       return isBankOwnerAsync(name, offlinePlayer.getUniqueId());
     }
 
+    private CompletableFuture<EconomyResponse> isBankOwnerAsync(String name, String playerUUID) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(playerUUID);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(playerUUID).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> isBankOwnerAsync( name, uuid))
+                .exceptionally(ex -> INVALID_PLAYER);
+    }
+
     default CompletableFuture<EconomyResponse> isBankMemberAsync(String name, UUID uuid) {
-      return CompletableFuture.supplyAsync(() -> isBankMember(name, uuid.toString()));
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return isBankMember(name, offlinePlayer);
+                    }
+
+                    return isBankMember(name, uuid.toString());
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> INVALID_PLAYER);
     }
 
     default CompletableFuture<EconomyResponse> isBankMemberAsync(String name, OfflinePlayer offlinePlayer) {
       return isBankMemberAsync(name, offlinePlayer.getUniqueId());
     }
 
+    private CompletableFuture<EconomyResponse> isBankMemberAsync(String name, String playerUUID) {
+        return CompletableFuture.supplyAsync(() -> {
+                    try {
+                        return UUID.fromString(playerUUID);
+                    } catch (IllegalArgumentException e) {
+                        return Bukkit.getOfflinePlayer(playerUUID).getUniqueId();
+                    }
+                }, Vault.vaultEconomyService)
+                .thenCompose(uuid -> isBankMemberAsync( name, uuid))
+                .exceptionally(ex -> INVALID_PLAYER);
+    }
+
     default CompletableFuture<List<String>> getBanksAsync() {
-      return CompletableFuture.supplyAsync(this::getBanks);
+      return CompletableFuture.supplyAsync(this::getBanks, Vault.vaultEconomyService);
     }
 
     @Deprecated
     default EconomyResponse createBank(String name, String playerUUID) {
-      try {
-          return createBankAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            UUID target;
+            try {
+                target = UUID.fromString(playerUUID);
+            } catch (IllegalArgumentException e) {
+                target = Bukkit.getOfflinePlayer(playerUUID).getUniqueId();
+            }
+            return createBankAsync(name, target).get(1000, TimeUnit.MILLISECONDS);
+
+        } catch (TimeoutException e) {
+            Bukkit.getLogger().warning(String.format(
+                    "[Vault-Economy] createBank() Sync Timeout! Bank %s may have been create for %s without the calling plugin knowing.",
+                    name, playerUUID
+            ));
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Economy timed out (1000ms limit)");
+        } catch (Exception e) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Error: " + e.getMessage());
+        }
     }
 
     @Deprecated
     default EconomyResponse createBank(String name, OfflinePlayer player) {
       try {
-          return createBankAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+          return createBankAsync(name, player).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault-Economy] createBank() Sync Timeout! Bank %s may have been create for %s without the calling plugin knowing.",
+                  name, player.getName()
+          ));
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -372,8 +638,12 @@ public interface Economy {
     @Deprecated
     default EconomyResponse deleteBank(String name) {
       try {
-          return deleteBankAsync(name).get(50, TimeUnit.MILLISECONDS);
+          return deleteBankAsync(name).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault-Economy] deleteBank() Sync Timeout! Bank %s may have been deleted without the calling plugin knowing.",
+                  name
+          ));
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -381,8 +651,9 @@ public interface Economy {
     @Deprecated
     default EconomyResponse bankBalance(String name) {
       try {
-          return bankBalanceAsync(name).get(50, TimeUnit.MILLISECONDS);
+          return bankBalanceAsync(name).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] bankBalance() Sync Timeout! Economy Provider is taking too long.");
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -390,8 +661,9 @@ public interface Economy {
     @Deprecated
     default EconomyResponse bankHas(String name, double amount) {
       try {
-          return bankHasAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return bankHasAsync(name, BigDecimal.valueOf(amount)).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] bankBalance() Sync Timeout! Economy Provider is taking too long.");
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -399,8 +671,12 @@ public interface Economy {
     @Deprecated
     default EconomyResponse bankWithdraw(String name, double amount) {
       try {
-          return bankWithdrawAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return bankWithdrawAsync(name, BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault] bankWithdraw() Sync Timeout! Bank %s may have been charged $%.2f without the calling plugin knowing.",
+                  name, amount
+          ));
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -408,44 +684,58 @@ public interface Economy {
     @Deprecated
     default EconomyResponse bankDeposit(String name, double amount) {
       try {
-          return bankDepositAsync(name, BigDecimal.valueOf(amount)).get(50, TimeUnit.MILLISECONDS);
+          return bankDepositAsync(name, BigDecimal.valueOf(amount)).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().warning(String.format(
+                  "[Vault] bankDeposit() Sync Timeout! Bank %s may have been deposited $%.2f without the calling plugin knowing.",
+                  name, amount
+          ));
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
 
     @Deprecated
     default EconomyResponse isBankOwner(String name, String playerUUID) {
-      try {
-          return isBankOwnerAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            return isBankOwnerAsync(name, playerUUID).get(500, TimeUnit.MILLISECONDS);
+
+        } catch (TimeoutException e) {
+            Bukkit.getLogger().info("[Vault-Economy] isBankOwner() Sync Timeout! Economy Provider is taking too long.");
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Economy timed out (500ms limit)");
+        } catch (Exception e) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Error: " + e.getMessage());
+        }
     }
 
     @Deprecated
     default EconomyResponse isBankOwner(String name, OfflinePlayer player) {
       try {
-          return isBankOwnerAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+          return isBankOwnerAsync(name, player).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] isBankOwner() Sync Timeout! Economy Provider is taking too long.");
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
 
     @Deprecated
     default EconomyResponse isBankMember(String name, String playerUUID) {
-      try {
-          return isBankMemberAsync(name, UUID.fromString(playerUUID)).get(50, TimeUnit.MILLISECONDS);
-      } catch (Exception e) {
-          return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
-      }
+        try {
+            return isBankMemberAsync(name, playerUUID).get(500, TimeUnit.MILLISECONDS);
+
+        } catch (TimeoutException e) {
+            Bukkit.getLogger().info("[Vault-Economy] isBankMember() Sync Timeout! Economy Provider is taking too long.");
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Economy timed out (500ms limit)");
+        } catch (Exception e) {
+            return new EconomyResponse(0, 0, EconomyResponse.ResponseType.FAILURE, "Error: " + e.getMessage());
+        }
     }
 
     @Deprecated
     default EconomyResponse isBankMember(String name, OfflinePlayer player) {
       try {
-          return isBankMemberAsync(name, player.getUniqueId()).get(50, TimeUnit.MILLISECONDS);
+          return isBankMemberAsync(name, player).get(500, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] isBankMember() Sync Timeout! Economy Provider is taking too long.");
           return new EconomyResponse(0.0, 0.0, EconomyResponse.ResponseType.FAILURE, "Not Implemented or Took Too Long!");
       }
     }
@@ -453,8 +743,9 @@ public interface Economy {
     @Deprecated
     default List<String> getBanks() {
       try {
-          return getBanksAsync().get(50, TimeUnit.MILLISECONDS);
+          return getBanksAsync().get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] getBanks() Sync Timeout! Economy Provider is taking too long.");
           return new ArrayList<>();
       }
     }
@@ -462,7 +753,16 @@ public interface Economy {
     //------------------------------------------ createPlayerAccount() Methods --------------------------------------------
 
     default CompletableFuture<Boolean> createAccountAsync(UUID uuid, String worldName, boolean player) {
-        return CompletableFuture.supplyAsync(() -> createPlayerAccount(uuid.toString(), worldName));
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(uuid), Vault.vaultEconomyService)
+                .thenApplyAsync(offlinePlayer -> {
+                    if (offlinePlayer.hasPlayedBefore()) {
+                        return createPlayerAccount(offlinePlayer, worldName);
+                    }
+
+                    return createPlayerAccount(uuid.toString(), worldName);
+
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> false);
     }
 
     default CompletableFuture<Boolean> createAccountAsync(OfflinePlayer offlinePlayer, String worldName, boolean player) {
@@ -477,11 +777,27 @@ public interface Economy {
         return createAccountAsync(offlinePlayer.getUniqueId(), worldName, true, accountName);
     }
 
+    private CompletableFuture<Boolean> createAccountAsync(String accountId, String worldName) {
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(accountId), Vault.vaultEconomyService)
+                .thenComposeAsync(op -> {
+                    if (op.hasPlayedBefore()) {
+                        return createAccountAsync(op, worldName, true);
+                    }
+                    try {
+                        return createAccountAsync(UUID.fromString(accountId), worldName, true);
+                    } catch (IllegalArgumentException e) {
+                        return CompletableFuture.completedFuture(false);
+                    }
+                }, Vault.vaultEconomyService)
+                .exceptionally(ex -> false);
+    }
+
     @Deprecated
     default boolean createPlayerAccount(String accountId) {
       try {
-          return createAccountAsync(UUID.fromString(accountId), null, true).get(50, TimeUnit.MILLISECONDS);
+          return createAccountAsync(accountId, "").get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] createPlayerAccount() Sync Timeout! An account may have been made without the calling plugin knowing");
           return false;
       }
     }
@@ -489,8 +805,9 @@ public interface Economy {
     @Deprecated
     default boolean createPlayerAccount(OfflinePlayer player) {
       try {
-          return createAccountAsync(player.getUniqueId(), null, true).get(50, TimeUnit.MILLISECONDS);
+          return createAccountAsync(player, null, true).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] createPlayerAccount() Sync Timeout! An account may have been made without the calling plugin knowing");
           return false;
       }
     }
@@ -498,8 +815,9 @@ public interface Economy {
     @Deprecated
     default boolean createPlayerAccount(String accountId, String worldName) {
       try {
-          return createAccountAsync(UUID.fromString(accountId), worldName, true).get(50, TimeUnit.MILLISECONDS);
+          return createAccountAsync(accountId, worldName).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] createPlayerAccount() Sync Timeout! An account may have been made without the calling plugin knowing");
           return false;
       }
     }
@@ -507,8 +825,9 @@ public interface Economy {
     @Deprecated
     default boolean createPlayerAccount(OfflinePlayer player, String worldName) {
       try {
-          return createAccountAsync(player.getUniqueId(), worldName, true).get(50, TimeUnit.MILLISECONDS);
+          return createAccountAsync(player, worldName, true).get(1000, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
+          Bukkit.getLogger().info("[Vault-Economy] createPlayerAccount() Sync Timeout! An account may have been made without the calling plugin knowing");
           return false;
       }
     }
@@ -775,18 +1094,19 @@ public interface Economy {
      * @return an EconomyResponse object indicating the result of the operation
      */
     default CompletableFuture<EconomyResponse> setAccountAsync(@NotNull String plugin, @NotNull final UUID accountID, @NotNull final String worldName, @NotNull final BigDecimal amount) {
+
         return getBalanceAsync(accountID, worldName).thenCompose(balance -> {
-            final int compare = balance.compareTo(amount);
-            if(compare > 0) {
-                return withdrawAccount(plugin, accountID, worldName, balance.subtract(amount));
-            }
+                final int compare = balance.compareTo(amount);
+                if (compare > 0) {
+                    return withdrawAccount(plugin, accountID, worldName, balance.subtract(amount));
+                }
 
-            if(compare < 0) {
-                return depositAccount(plugin, accountID, worldName, amount.subtract(balance));
-            }
+                if (compare < 0) {
+                    return depositAccount(plugin, accountID, worldName, amount.subtract(balance));
+                }
 
-            return CompletableFuture.completedFuture(new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, ""));
-        });
+                return CompletableFuture.completedFuture(new EconomyResponse(BigDecimal.ZERO, amount, EconomyResponse.ResponseType.SUCCESS, ""));
+            });
     }
 
     /**

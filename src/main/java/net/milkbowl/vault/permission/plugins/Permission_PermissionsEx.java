@@ -1,7 +1,10 @@
 package net.milkbowl.vault.permission.plugins;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+import net.milkbowl.vault.Vault;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -352,146 +355,198 @@ public class Permission_PermissionsEx
   //Extra Methods Implemented in Custom Vault
 
     @Override
-    public boolean playerAddTimedPermission(String world, OfflinePlayer player, String permission, long time) {
-        PermissionUser user = getUser(player.getName());
-        int lifetime = 0;
-        if (user == null)
-            return false;
-        if (time > 0)
-            lifetime = (int) time;
-        user.addTimedPermission(permission, world, lifetime);
-        return true;
+    public CompletableFuture<Boolean> playerAddTimedPermission(String world, OfflinePlayer player, String permission, long time) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionUser user = getUser(player.getName());
+          int lifetime = 0;
+          if (user == null)
+              return false;
+          if (time > 0)
+              lifetime = (int) time;
+          user.addTimedPermission(permission, world, lifetime);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
     }
 
     @Override
-    public boolean playerRemoveTimedPermission(String world, OfflinePlayer player, String permission) {
-        PermissionUser user = getUser(player.getName());
-        if (user == null) return false;
-        user.removeTimedPermission(permission, world);
-        return true;
-    }
-
-    @Override
-    public String[] getPlayerAllPermissions(OfflinePlayer player) {
-        PermissionUser user = getUser(player.getName());
-        if (user == null) return new String[0];
-        return user.getPermissions(null).toArray(new String[0]);
-    }
-
-    @Override
-    public String[] getPlayerOwnPermissions(String world, OfflinePlayer player) {
-        PermissionUser user = getUser(player.getName());
-        if (user == null) return new String[0];
-        return getUserOptionList(user, "permissions");
-    }
-
-    @Override
-    public String[] getPlayerWorldPermissions(String world, OfflinePlayer player) {
-        PermissionUser user = getUser(player.getName());
-        if (user == null) return new String[0];
-        return getUserOptionList(user, "worlds." + world + ".permissions");
-    }
-
-    @Override
-    public boolean groupAddTimedPermission(String world, String groupName, String permission, long time) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        int lifetime = 0;
-        if (time > 0)
-            lifetime = (int) time;
-        group.addTimedPermission(permission, world, lifetime);
-        return true;
-    }
-
-    @Override
-    public boolean groupRemoveTimedPermission(String world, String groupName, String permission) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        group.removeTimedPermission(permission, world);
-        return true;
-    }
-
-    @Override
-    public String[] getGroupAllPermissions(String world, String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return new String[0];
-        return group.getPermissions(world).toArray(new String[0]);
-    }
-
-    @Override
-    public String[] getGroupOwnPermissions(String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return new String[0];
-        return getGroupOptionList(groupName, "permissions");
-    }
-
-    @Override
-    public String[] getGroupWorldPermissions(String world, String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return new String[0];
-        return getGroupOptionList(groupName, "worlds." + world + ".permissions");
-    }
-
-    @Override
-    public String[] getGroupParents(String world, String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return new String[0];
-        return group.getParentIdentifiers(world).toArray(new String[0]);
-    }
-
-    @Override
-    public String getGroupPrefix(String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return null;
-        return group.getOwnPrefix();
-    }
-
-    @Override
-    public boolean setGroupPrefix(String groupName, String prefix) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        group.setPrefix(null, prefix);
-        return true;
-    }
-
-    @Override
-    public String getGroupSuffix(String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return null;
-        return group.getOwnSuffix();
-    }
-
-    @Override
-    public boolean setGroupSuffix(String groupName, String suffix) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        group.setSuffix(null, suffix);
-        return true;
-    }
-
-    @Override
-    public boolean groupCreate(String world, String groupName, boolean isDefault) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        else if (!group.isVirtual()) return false;
-        group.save();
-        return true;
+    public CompletableFuture<Boolean> playerRemoveTimedPermission(String world, OfflinePlayer player, String permission) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionUser user = getUser(player.getName());
+          if (user == null) return false;
+          user.removeTimedPermission(permission, world);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
     @Override
-    public boolean groupDelete(String world, String groupName) {
-        PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
-        if (group == null) return false;
-        group.remove();
-        permission.getPermissionsManager().resetGroup(group.getIdentifier());
-        return true;
+    public CompletableFuture<String[]> getPlayerAllPermissions(OfflinePlayer player) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionUser user = getUser(player.getName());
+          if (user == null) return new String[0];
+          return user.getPermissions(null).toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
     }
 
     @Override
-    public String getDefaultGroup(String world) {
-        if (PermissionsEx.getPermissionManager().getDefaultGroups(world) == null) return null;
-        return PermissionsEx.getPermissionManager().getDefaultGroups(world).get(0).getName();
+    public CompletableFuture<String[]> getPlayerOwnPermissions(String world, OfflinePlayer player) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionUser user = getUser(player.getName());
+          if (user == null) return new String[0];
+          return getUserOptionList(user, "permissions");
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<String[]> getPlayerWorldPermissions(String world, OfflinePlayer player) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionUser user = getUser(player.getName());
+          if (user == null) return new String[0];
+          return getUserOptionList(user, "worlds." + world + ".permissions");
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> groupAddTimedPermission(String world, String groupName, String permission, long time) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          int lifetime = 0;
+          if (time > 0)
+              lifetime = (int) time;
+          group.addTimedPermission(permission, world, lifetime);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> groupRemoveTimedPermission(String world, String groupName, String permission) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          group.removeTimedPermission(permission, world);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<String[]> getGroupAllPermissions(String world, String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return new String[0];
+          return group.getPermissions(world).toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<String[]> getGroupOwnPermissions(String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return new String[0];
+          return getGroupOptionList(groupName, "permissions");
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<String[]> getGroupWorldPermissions(String world, String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return new String[0];
+          return getGroupOptionList(groupName, "worlds." + world + ".permissions");
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<String[]> getGroupParents(String world, String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return new String[0];
+          return group.getParentIdentifiers(world).toArray(new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+
+    }
+
+    @Override
+    public CompletableFuture<String> getGroupPrefix(String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return null;
+          return group.getOwnPrefix();
+      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setGroupPrefix(String groupName, String prefix) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          group.setPrefix(null, prefix);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<String> getGroupSuffix(String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return null;
+          return group.getOwnSuffix();
+      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> setGroupSuffix(String groupName, String suffix) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          group.setSuffix(null, suffix);
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> groupCreate(String world, String groupName, boolean isDefault) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          else if (!group.isVirtual()) return false;
+          group.save();
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> groupDelete(String world, String groupName) {
+      return CompletableFuture.supplyAsync(() -> {
+          PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
+          if (group == null) return false;
+          group.remove();
+          permission.getPermissionsManager().resetGroup(group.getIdentifier());
+          return true;
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+
+    }
+
+    @Override
+    public CompletableFuture<String> getDefaultGroup(String world) {
+      return CompletableFuture.supplyAsync(() -> {
+          if (PermissionsEx.getPermissionManager().getDefaultGroups(world) == null) return null;
+          return PermissionsEx.getPermissionManager().getDefaultGroups(world).get(0).getName();
+      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+
     }
 
     private String[] getUserOptionList(PermissionUser user, String option) {
