@@ -1,9 +1,7 @@
 package net.milkbowl.vault;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -12,7 +10,6 @@ import net.milkbowl.vault.economy.Economy;
 
 import net.milkbowl.vault.economy.plugins.Economy_CMI;
 import net.milkbowl.vault.economy.plugins.Economy_Essentials;
-import net.milkbowl.vault.economy.plugins.Economy_Veco;
 import net.milkbowl.vault.items.api.CustomItemProvider;
 import net.milkbowl.vault.items.api.CustomItemRegistry;
 import net.milkbowl.vault.items.CustomItems;
@@ -21,35 +18,21 @@ import net.milkbowl.vault.items.plugins.CustomItems_Nexo;
 import net.milkbowl.vault.items.plugins.CustomItems_Oraxen;
 import net.milkbowl.vault.permission.Permission;
 import net.milkbowl.vault.permission.plugins.*;
-import net.milkbowl.vault.veco.Veco;
-import net.milkbowl.vault.veco.commands.Player_Commands;
-import net.milkbowl.vault.veco.commands.Veco_Command;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
-
 import org.bukkit.command.CommandSender;
-
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class Vault extends JavaPlugin { 
    private static Logger log;
    private Permission perms;
    private Economy econ;
-
-   private net.milkbowl.vault2.economy.Economy vaultUnlockedEconomy;
-   private boolean usingVaultUnlocked = false;
-
-   private Economy_Veco veco;
-   public boolean usingVEco = false;
 
    private CustomItemRegistry registry;
 
@@ -62,8 +45,6 @@ public class Vault extends JavaPlugin {
    public static ThreadPoolExecutor vaultPermissionService;
    
    public void onDisable() {
-       if (usingVEco)
-           Veco.saveBalances();
        shutdownVaultPermissionsServiceWorkers();
        shutdownVaultEconomyServiceWorkers();
        getServer().getServicesManager().unregisterAll(this);
@@ -78,39 +59,15 @@ public class Vault extends JavaPlugin {
        log = getLogger();
        this.currentVersionTitle = getDescription().getVersion().split("-")[0];
        this.sm = getServer().getServicesManager();
-
-       loadCustomItems();
-       loadEconomy();
-       loadPermission();
      
        getCommand("vault-info").setExecutor(this);
        getCommand("vault-convert").setExecutor(this);
        getCommand("vault-test").setExecutor(this);
 
 
-       getCommand("veco").setExecutor(new Veco_Command());
-       getCommand("veco").setTabCompleter(new Veco_Command());
-
-       getCommand("pay").setExecutor(new Player_Commands());
-       getCommand("balance").setExecutor(new Player_Commands());
-       getCommand("pay").setTabCompleter(new Player_Commands());
-
-
-       // Let Other Economies Register -- Try to Prevent Race Conditions
-       new BukkitRunnable() {
-           @Override
-           public void run() {
-               if (sm.getRegistration(Economy.class) != null && !vaultUnlockedPresent())
-                   return;
-
-               veco = new Economy_Veco(getInstance());
-               sm.register(Economy.class, veco, getInstance(), ServicePriority.Lowest);
-               econ = veco;
-               usingVEco = true;
-               log.info(String.format("[Economy] Veco loaded as backup economy system."));
-           }
-       }.runTaskLater(this, 1L);
-
+       loadCustomItems();
+       loadEconomy();
+       loadPermission();
      
        log.info(String.format("Enabled Version %s", getDescription().getVersion()));
    }
@@ -119,7 +76,13 @@ public class Vault extends JavaPlugin {
 
         hookEconomy("CMI Economy", Economy_CMI.class, ServicePriority.Normal, "com.Zrips.CMI.Modules.Economy.Economy");
         hookEconomy("Essentials Economy", Economy_Essentials.class, ServicePriority.Low, "com.earth2me.essentials.api.Economy", "com.earth2me.essentials.api.NoLoanPermittedException", "com.earth2me.essentials.api.UserDoesNotExistException");
-    }
+
+        RegisteredServiceProvider<Economy> rsp = sm.getRegistration(Economy.class);
+        if (rsp != null)
+            econ = rsp.getProvider();
+
+
+   }
 
     /**
      * Attempts to load Permission Addons
@@ -165,7 +128,6 @@ public class Vault extends JavaPlugin {
          Economy econ = hookClass.getConstructor( Plugin.class ).newInstance(this);
          this.sm.register(Economy.class, econ, this, priority);
          log.info(String.format("[Economy] %s found: %s", name, econ.isEnabled() ? "Loaded" : "Waiting"));
-         usingVEco = false;
          this.econ = econ;
        } 
      } catch (Exception e) {
@@ -203,27 +165,12 @@ public class Vault extends JavaPlugin {
         return perms;
    }
 
-   public boolean vaultUnlockedPresent() {
-        if (usingVaultUnlocked) return true;
-
-        RegisteredServiceProvider<net.milkbowl.vault2.economy.Economy> vaultUnlocked =Bukkit.getServicesManager().getRegistration(net.milkbowl.vault2.economy.Economy.class);
-        if (vaultUnlocked != null) {
-            usingVEco = false;
-            usingVaultUnlocked = true;
-            vaultUnlockedEconomy = vaultUnlocked.getProvider();
-            return true;
-        }
-        return false;
-   }
-
-   public net.milkbowl.vault2.economy.Economy getVaultUnlocked() {
-        return vaultUnlockedEconomy;
-   }
-
    public Economy getEcon() {
-        // Check for other plugins first
-        if (usingVEco)
-            econ = Bukkit.getServicesManager().getRegistration(Economy.class).getProvider();
+        if (econ != null) return econ;
+
+        RegisteredServiceProvider<Economy> rsp = sm.getRegistration(Economy.class);
+        if (rsp != null)
+            econ = rsp.getProvider();
         return econ;
    }
 
@@ -497,8 +444,8 @@ public class Vault extends JavaPlugin {
     private void loadVaultPermissionsServiceWorkers() {
         vaultPermissionService = new ThreadPoolExecutor(
                 1, // Keep 1 thread "Parked" (Minimum)
-                4, // Allow up to 4 if the server gets busy
-                60L, TimeUnit.SECONDS, // If the extra 3 are idle for 60s, kill them
+                8, // Allow up to 4 if the server gets busy
+                60L, TimeUnit.SECONDS, // If the extra 7 are idle for 60s, kill them
                 new LinkedBlockingQueue<>(),
                 new ThreadFactoryBuilder().setNameFormat("Vault-Permissions-Worker-%d").setDaemon(true).build()
         );

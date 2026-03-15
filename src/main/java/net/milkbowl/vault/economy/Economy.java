@@ -6,7 +6,9 @@ import java.util.concurrent.*;
 
 import net.milkbowl.vault.Vault;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public interface Economy {
@@ -1276,4 +1278,21 @@ public interface Economy {
         throw new UnsupportedOperationException(getName() + " does not support this method.");
     }
 
+    // ---------------------------Currency Item Methods--------------------------------
+
+    default boolean isItemStackCurrency(ItemStack itemStack) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default boolean isItemStackCurrency(String currency, ItemStack itemStack) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default String getItemStackCurrency(ItemStack itemStack) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
+
+    default BigDecimal getItemStackWorth(String currency, ItemStack itemStack) {
+        throw new UnsupportedOperationException(getName() + " does not support this method.");
+    }
 }

@@ -365,7 +365,7 @@ public class Permission_PermissionsEx
               lifetime = (int) time;
           user.addTimedPermission(permission, world, lifetime);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
     }
 
     @Override
@@ -375,7 +375,7 @@ public class Permission_PermissionsEx
           if (user == null) return false;
           user.removeTimedPermission(permission, world);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -385,7 +385,7 @@ public class Permission_PermissionsEx
           PermissionUser user = getUser(player.getName());
           if (user == null) return new String[0];
           return user.getPermissions(null).toArray(new String[0]);
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -395,7 +395,7 @@ public class Permission_PermissionsEx
           PermissionUser user = getUser(player.getName());
           if (user == null) return new String[0];
           return getUserOptionList(user, "permissions");
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -405,7 +405,7 @@ public class Permission_PermissionsEx
           PermissionUser user = getUser(player.getName());
           if (user == null) return new String[0];
           return getUserOptionList(user, "worlds." + world + ".permissions");
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -419,7 +419,7 @@ public class Permission_PermissionsEx
               lifetime = (int) time;
           group.addTimedPermission(permission, world, lifetime);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -430,7 +430,7 @@ public class Permission_PermissionsEx
           if (group == null) return false;
           group.removeTimedPermission(permission, world);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -440,7 +440,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return new String[0];
           return group.getPermissions(world).toArray(new String[0]);
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -450,7 +450,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return new String[0];
           return getGroupOptionList(groupName, "permissions");
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -460,7 +460,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return new String[0];
           return getGroupOptionList(groupName, "worlds." + world + ".permissions");
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -470,7 +470,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return new String[0];
           return group.getParentIdentifiers(world).toArray(new String[0]);
-      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 200, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
+      }, Vault.vaultPermissionService).completeOnTimeout(new String[0], 500, TimeUnit.MILLISECONDS).exceptionally(ex -> new String[0]);
 
     }
 
@@ -480,7 +480,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return null;
           return group.getOwnPrefix();
-      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+      }, Vault.vaultPermissionService).completeOnTimeout("", 500, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
 
     }
 
@@ -491,7 +491,7 @@ public class Permission_PermissionsEx
           if (group == null) return false;
           group.setPrefix(null, prefix);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -501,7 +501,7 @@ public class Permission_PermissionsEx
           PermissionGroup group = PermissionsEx.getPermissionManager().getGroup(groupName);
           if (group == null) return null;
           return group.getOwnSuffix();
-      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+      }, Vault.vaultPermissionService).completeOnTimeout("", 500, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
 
     }
 
@@ -512,7 +512,7 @@ public class Permission_PermissionsEx
           if (group == null) return false;
           group.setSuffix(null, suffix);
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -524,7 +524,7 @@ public class Permission_PermissionsEx
           else if (!group.isVirtual()) return false;
           group.save();
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -536,7 +536,7 @@ public class Permission_PermissionsEx
           group.remove();
           permission.getPermissionsManager().resetGroup(group.getIdentifier());
           return true;
-      }, Vault.vaultPermissionService).completeOnTimeout(false, 200, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
+      }, Vault.vaultPermissionService).completeOnTimeout(false, 500, TimeUnit.MILLISECONDS).exceptionally(ex -> false);
 
     }
 
@@ -545,7 +545,7 @@ public class Permission_PermissionsEx
       return CompletableFuture.supplyAsync(() -> {
           if (PermissionsEx.getPermissionManager().getDefaultGroups(world) == null) return null;
           return PermissionsEx.getPermissionManager().getDefaultGroups(world).get(0).getName();
-      }, Vault.vaultPermissionService).completeOnTimeout("", 200, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
+      }, Vault.vaultPermissionService).completeOnTimeout("", 500, TimeUnit.MILLISECONDS).exceptionally(ex -> "");
 
     }
 
