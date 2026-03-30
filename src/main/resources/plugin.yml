@@ -27,23 +27,6 @@ commands:
     usage: |
       /<command> [itemId]
     permission: vault.admin
-  veco:
-    description: Give or Take Money from a Player
-    usage: |
-           /<command> <give/take> <player> <amount>
-    permission: vault.admin
-  pay:
-    description: Pays another player
-    usage: |
-           /<command> <player> <amount>
-    permission: vault.pay
-  balance:
-    aliases:
-      - bal
-    description: Retrieves Player's Balance
-    usage: |
-           /<command>
-    permission: vault.bal
 
 permissions:
   vault.admin:

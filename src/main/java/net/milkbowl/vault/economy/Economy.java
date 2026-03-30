@@ -1281,18 +1281,22 @@ public interface Economy {
     // ---------------------------Currency Item Methods--------------------------------
 
     default boolean isItemStackCurrency(ItemStack itemStack) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        throw new UnsupportedOperationException(getName() + " does not support isItemStackCurrency(ItemStack) method.");
     }
 
     default boolean isItemStackCurrency(String currency, ItemStack itemStack) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        throw new UnsupportedOperationException(getName() + " does not support isItemStackCurrency(Currency, ItemStack) method.");
     }
 
     default String getItemStackCurrency(ItemStack itemStack) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        throw new UnsupportedOperationException(getName() + " does not support getItemStackCurrency() method.");
     }
 
     default BigDecimal getItemStackWorth(String currency, ItemStack itemStack) {
-        throw new UnsupportedOperationException(getName() + " does not support this method.");
+        throw new UnsupportedOperationException(getName() + " does not support getItemStackWorth() method.");
+    }
+
+    default List<ItemStack> getCurrencyItemStacks(BigDecimal amount, String currency) {
+        throw new UnsupportedOperationException(getName() + "does not support getCurrencyItemStacks() method.");
     }
 }
